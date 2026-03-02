@@ -1,0 +1,88 @@
+# =============================================================================
+# SecureScan — .dockerignore
+#
+# Exclut du contexte de build Docker les fichiers inutiles ou sensibles.
+# Un contexte léger = transfert plus rapide vers le daemon Docker = build rapide.
+#
+# RÈGLE : exclure tout ce qui est généré, temporaire, ou sensible.
+#         Inclure uniquement le code source et les configurations nécessaires.
+# =============================================================================
+
+# ── Dépendances (installées dans le conteneur par Composer) ──────────────────
+/vendor/
+
+# ── Cache, logs et données runtime Symfony ───────────────────────────────────
+/var/cache/
+/var/log/
+/var/sessions/
+# La base SQLite est générée dans le conteneur, pas copiée depuis l'hôte
+/var/securescan.db
+
+# ── Git ───────────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+
+# ── IDE et éditeurs ───────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.editorconfig
+*.iml
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── Tests (non nécessaires en production) ────────────────────────────────────
+/tests/
+phpunit.xml
+phpunit.xml.dist
+.phpunit.result.cache
+.phpunit.cache/
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+# Décommenter si vous ne souhaitez pas inclure les .md dans l'image PROD.
+# Les garder inclus peut être utile pour les audits.
+# *.md
+
+# ── Node.js (si présent pour les outils de build frontend) ───────────────────
+/node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+
+# ── CI/CD ─────────────────────────────────────────────────────────────────────
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+Jenkinsfile
+
+# ── Fichiers d'environnement sensibles ───────────────────────────────────────
+# .env de base est inclus (contient les defaults non sensibles)
+# .env.local et .env.*.local contiennent les secrets → EXCLURE
+.env.local
+.env.*.local
+.env.prod
+.env.prod.local
+
+# ── Fichiers temporaires de scan ──────────────────────────────────────────────
+/tmp/
+
+# ── Makefile (non nécessaire dans le conteneur) ───────────────────────────────
+Makefile
+
+# ── Outils de qualité de code (non nécessaires en prod) ──────────────────────
+.php-cs-fixer.php
+.php-cs-fixer.cache
+phpstan.neon
+phpstan.neon.dist
+psalm.xml
+
+# NOTE : docker/ est intentionnellement INCLUS dans le contexte de build.
+# Le Dockerfile copie docker/php/php.ini et docker/php/entrypoint*.sh.
+# docker/nginx/ est monté via volume et n'a pas besoin d'être dans l'image.

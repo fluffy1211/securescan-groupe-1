@@ -1,0 +1,161 @@
+# =============================================================================
+# SecureScan — docker-compose.yml (mode développement)
+#
+# Services :
+#   app   → PHP 8.2-FPM + Semgrep (backend Symfony + moteur d'analyse)
+#   nginx → Reverse proxy, sert les assets statiques, passe PHP à app:9000
+#
+# POINT D'ATTENTION — performances des volumes par OS :
+#   • Windows (WSL2) : mettre le projet dans le filesystem WSL2 (/home/user/)
+#     et non dans /mnt/c/. Les volumes sur /mnt/c sont très lents (9P protocol).
+#   • macOS : activer VirtioFS dans Docker Desktop > Settings > General
+#     pour de meilleures performances de synchronisation.
+#   • Linux : performances natives, aucune configuration particulière.
+#
+# Utilisation :
+#   docker compose up -d          → démarrer
+#   docker compose down           → arrêter
+#   docker compose logs -f        → suivre les logs
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Service APP — PHP-FPM + Semgrep
+  #
+  # PHP et Semgrep cohabitent dans le MÊME conteneur car Symfony invoque
+  # Semgrep via symfony/process (appel CLI local, pas de communication réseau).
+  # Un conteneur séparé Semgrep nécessiterait un appel réseau + marshalling JSON,
+  # ce qui complexifierait l'architecture sans bénéfice ici.
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Changer 'dev' en 'prod' pour un déploiement production
+      target: dev
+      args:
+        # Active le cache en ligne dans BuildKit (accélère les rebuilds CI)
+        BUILDKIT_INLINE_CACHE: "1"
+    image: securescan-app:dev
+    container_name: securescan-app
+    restart: unless-stopped
+
+    volumes:
+      # ── Code source (hot-reload) ──────────────────────────────────────────
+      # Le code est monté directement : toute modification est immédiatement
+      # visible sans rebuild de l'image.
+      # ATTENTION Windows : pointer vers le dossier dans WSL2, pas /mnt/c/
+      - .:/var/www/html
+
+      # ── Cache Composer partagé ────────────────────────────────────────────
+      # Évite de retélécharger les packages entre les rebuilds.
+      # Sur Windows, le cache est dans le profil WSL2 de l'utilisateur.
+      - composer-cache:/root/.composer/cache
+
+      # ── Répertoire temporaire des scans ───────────────────────────────────
+      # Semgrep clone les repos dans /tmp/securescan-scans/.
+      # Ce volume nommé persiste les clones entre redémarrages (utile en dev)
+      # et peut être nettoyé avec `make clean-scans`.
+      - scan-tmp:/tmp/securescan-scans
+
+    environment:
+      # ── Symfony ────────────────────────────────────────────────────────────
+      APP_ENV: ${APP_ENV:-dev}
+      # IMPORTANT : changer en production (au moins 32 caractères aléatoires)
+      APP_SECRET: ${APP_SECRET:-changeme_secret_32chars_minimum_dev}
+      # SQLite — chemin relatif au project_dir Symfony
+      DATABASE_URL: ${DATABASE_URL:-sqlite:///%kernel.project_dir%/var/securescan.db}
+
+      # ── Semgrep ────────────────────────────────────────────────────────────
+      # Désactiver la télémétrie et la vérification de version en dev
+      SEMGREP_SEND_METRICS: "off"
+      SEMGREP_ENABLE_VERSION_CHECK: "false"
+      # Répertoire de cache des règles Semgrep (préservé entre les redémarrages)
+      SEMGREP_RULES_CACHE_PATH: /tmp/semgrep-cache
+
+      # ── Xdebug (désactivé par défaut, activer avec XDEBUG_MODE=debug) ─────
+      XDEBUG_MODE: ${XDEBUG_MODE:-off}
+
+    # ── Linux uniquement : résolution de host.docker.internal ────────────────
+    # macOS et Windows Docker Desktop le font automatiquement.
+    # Décommenter sur Linux pour que Xdebug puisse joindre l'IDE hôte.
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+    networks:
+      - securescan-net
+
+    healthcheck:
+      # php-fpm -t vérifie la syntaxe de la config sans lancer de worker
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ---------------------------------------------------------------------------
+  # Service NGINX — reverse proxy HTTP
+  #
+  # Nginx sert directement les fichiers statiques (css, js, images) depuis
+  # public/ et transfère les requêtes PHP à app:9000 via FastCGI.
+  # Cela décharge PHP-FPM des requêtes statiques et améliore les performances.
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: securescan-nginx
+    restart: unless-stopped
+
+    ports:
+      # Port exposé sur l'hôte → http://localhost:8000
+      # Changer APP_PORT dans .env pour éviter les conflits de port
+      - "${APP_PORT:-8000}:80"
+
+    volumes:
+      # Configuration Nginx pour Symfony (montée en lecture seule)
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Fichiers publics (index.php + assets compilés)
+      # Nginx doit lire public/ pour servir les assets sans passer par PHP.
+      # Monté en :ro car Nginx n'a pas besoin d'y écrire.
+      - ./public:/var/www/html/public:ro
+
+    depends_on:
+      app:
+        condition: service_healthy
+
+    networks:
+      - securescan-net
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+
+# =============================================================================
+# Réseaux
+# NOTE : La recette doctrine/doctrine-bundle a tenté d'ajouter un service
+# PostgreSQL — supprimé car SecureScan utilise SQLite (fichier local).
+# =============================================================================
+networks:
+  securescan-net:
+    driver: bridge
+    # Sous-réseau explicite pour éviter les conflits avec d'autres projets Docker
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+
+# =============================================================================
+# Volumes nommés
+# =============================================================================
+volumes:
+  # Cache Composer (accélère les builds et les composer install)
+  composer-cache:
+
+  # Fichiers temporaires des scans Semgrep
+  # Contient les repos clonés et les résultats JSON bruts
+  scan-tmp:
+
