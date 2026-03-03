@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ScanJobRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ScanJobRepository::class)]
@@ -28,9 +30,13 @@ class ScanJob
     #[ORM\Column(nullable: true)]
     private ?int $globalScore = null;
 
+    #[ORM\OneToMany(targetEntity: Vulnerability::class, mappedBy: 'scanJob', cascade: ['persist', 'remove'])]
+    private Collection $vulnerabilities;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->vulnerabilities = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -90,6 +96,33 @@ class ScanJob
     public function setGlobalScore(?int $globalScore): static
     {
         $this->globalScore = $globalScore;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vulnerability>
+     */
+    public function getVulnerabilities(): Collection
+    {
+        return $this->vulnerabilities;
+    }
+
+    public function addVulnerability(Vulnerability $vulnerability): static
+    {
+        if (!$this->vulnerabilities->contains($vulnerability)) {
+            $this->vulnerabilities->add($vulnerability);
+            $vulnerability->setScanJob($this);
+        }
+        return $this;
+    }
+
+    public function removeVulnerability(Vulnerability $vulnerability): static
+    {
+        if ($this->vulnerabilities->removeElement($vulnerability)) {
+            if ($vulnerability->getScanJob() === $this) {
+                $vulnerability->setScanJob(null);
+            }
+        }
         return $this;
     }
 }
