@@ -103,27 +103,52 @@ body {
 }
 .nav-tab:hover { color: var(--text2); background: var(--card); }
 .nav-tab.active { background: var(--card2); color: var(--cyan); }
-.nav-right { display: flex; align-items: center; gap: 12px; }
-.nav-status {
-  display: flex; align-items: center; gap: 7px;
-  font-family: var(--font-mono); font-size: 0.65rem;
-  color: var(--text3); letter-spacing: 0.5px;
-}
-.status-dot {
-  width: 6px; height: 6px;
-  background: var(--green);
-  border-radius: 50%;
-  box-shadow: 0 0 6px var(--green);
-  animation: blink 3s ease-in-out infinite;
-}
+.nav-right { display: flex; align-items: center; gap: 8px; }
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-.nav-version {
-  font-family: var(--font-mono); font-size: 0.62rem;
-  padding: 4px 10px;
-  border: 1px solid var(--border2);
-  color: var(--text3);
-  border-radius: var(--radius-sm); letter-spacing: 1px;
+
+/* Bouton connexion */
+.nav-btn-login {
+  font-family: var(--font-mono); font-size: 0.65rem;
+  padding: 6px 16px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text2); cursor: pointer; letter-spacing: 0.5px;
+  text-transform: uppercase; transition: all 0.15s; text-decoration: none;
 }
+.nav-btn-login:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* Avatar profil */
+.nav-avatar {
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none; padding: 4px 10px 4px 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+.nav-avatar:hover { border-color: var(--cyan); }
+.nav-avatar-pic {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--cyan-dim); border: 1px solid rgba(0,217,245,0.3);
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; color: var(--cyan);
+}
+.nav-avatar-email {
+  font-family: var(--font-mono); font-size: 0.62rem; color: var(--text2);
+  max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nav-logout {
+  font-family: var(--font-mono); font-size: 0.62rem;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text3); cursor: pointer; transition: all 0.15s; text-decoration: none;
+}
+.nav-logout:hover { border-color: var(--red); color: var(--red); }
+
+/* Items connecté cachés par défaut */
+.nav-auth-only  { display: none; }
+.nav-guest-only { display: flex; }
+/* Dashboard masqué tant qu'aucun scan n'a été lancé */
+.nav-scan-only  { display: none; }
 
 /* SEVERITY BADGES */
 .sev-badge {
@@ -159,17 +184,78 @@ body {
     <div class="nav-logo-mark">S</div>
     <span class="nav-logo-text">Secure<span>Scan</span></span>
   </a>
+
+  {% if app.request.attributes.get('_route') != 'app_home' %}
   <div class="nav-center">
-    <a class="nav-tab {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}"
-       href="{{ path('app_home') }}">Accueil</a>
-    <a class="nav-tab {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}"
-       href="{{ path('app_dashboard') }}">Dashboard</a>
+    <a class="nav-tab" href="{{ path('app_home') }}">Accueil</a>
+    <a class="nav-tab nav-scan-only {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}"
+       href="{{ path('app_dashboard') }}" id="nav-dashboard">Dashboard</a>
+    <a class="nav-tab nav-auth-only {% if app.request.attributes.get('_route') == 'app_history' %}active{% endif %}"
+       href="{{ path('app_history') }}" id="nav-history">Historique</a>
   </div>
-  <div class="nav-right"></div>
+  {% endif %}
+
+  <div class="nav-right">
+    {# Bouton connexion — visible si déconnecté #}
+    <a class="nav-btn-login nav-guest-only" href="#" id="nav-login-btn">Connexion</a>
+
+    {# Profil + déconnexion — visibles si connecté #}
+    <a class="nav-avatar nav-auth-only" href="{{ path('app_profile') }}" id="nav-profile-link">
+      <div class="nav-avatar-pic" id="nav-avatar-letter">?</div>
+      <span class="nav-avatar-email" id="nav-avatar-email">—</span>
+    </a>
+    <a class="nav-logout nav-auth-only" href="#" id="nav-logout-btn">Déconnexion</a>
+  </div>
 </nav>
 
 {% block body %}{% endblock %}
 
 {% block javascripts %}{% endblock %}
+
+<script>
+(function () {
+  const user = JSON.parse(localStorage.getItem('ss_user') || 'null');
+
+  function applyState(u) {
+    const authEls  = document.querySelectorAll('.nav-auth-only');
+    const guestEls = document.querySelectorAll('.nav-guest-only');
+    if (u) {
+      authEls.forEach(el => el.style.display  = 'flex');
+      guestEls.forEach(el => el.style.display = 'none');
+      const letter = document.getElementById('nav-avatar-letter');
+      const email  = document.getElementById('nav-avatar-email');
+      if (letter) letter.textContent = u.email[0].toUpperCase();
+      if (email)  email.textContent  = u.email;
+    } else {
+      authEls.forEach(el  => el.style.display = 'none');
+      guestEls.forEach(el => el.style.display = 'flex');
+    }
+  }
+
+  applyState(user);
+
+  // Affiche le tab Dashboard uniquement si un scan a déjà été lancé
+  if (localStorage.getItem('ss_last_scan')) {
+    document.getElementById('nav-dashboard')?.style.setProperty('display', 'flex');
+  }
+
+  // Bouton connexion : simule un login avec email demo
+  document.getElementById('nav-login-btn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    const email = prompt('Email de connexion (démo) :');
+    if (email && email.trim()) {
+      localStorage.setItem('ss_user', JSON.stringify({ email: email.trim() }));
+      location.reload();
+    }
+  });
+
+  // Bouton déconnexion
+  document.getElementById('nav-logout-btn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    localStorage.removeItem('ss_user');
+    location.href = '/';
+  });
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,145 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SecureScan — Historique{% endblock %}
+
+{% block stylesheets %}
+<style>
+.history-wrap { padding: 36px 40px; max-width: 1100px; margin: 0 auto; }
+.page-header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.page-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 4px; }
+.page-sub { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text3); }
+
+.history-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.scan-card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius-xl); padding: 20px 24px;
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 20px;
+  cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+  text-decoration: none; color: inherit;
+}
+.scan-card:hover { border-color: var(--cyan); transform: translateY(-1px); }
+
+.scan-left { display: flex; flex-direction: column; gap: 8px; }
+.scan-repo {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; color: var(--text);
+}
+.scan-repo-icon { color: var(--cyan); font-size: 0.8rem; }
+.scan-meta {
+  display: flex; align-items: center; gap: 16px;
+  font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3);
+}
+.scan-date { display: flex; align-items: center; gap: 5px; }
+.scan-badges { display: flex; align-items: center; gap: 6px; }
+
+.scan-right { display: flex; align-items: center; gap: 12px; }
+.scan-score {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 16px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: var(--surface);
+  min-width: 60px;
+}
+.scan-score-num { font-size: 1.3rem; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+.scan-score-lbl { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+.score-good  { color: var(--green); }
+.score-med   { color: var(--amber); }
+.score-bad   { color: var(--red); }
+
+.scan-arrow { color: var(--text3); font-size: 1rem; }
+.scan-card:hover .scan-arrow { color: var(--cyan); }
+
+.empty-state {
+  text-align: center; padding: 80px 20px;
+  font-family: var(--font-mono); color: var(--text3);
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.3; }
+.empty-title { font-size: 0.85rem; margin-bottom: 8px; }
+.empty-sub { font-size: 0.7rem; }
+
+@media (max-width: 768px) {
+  .history-wrap { padding: 24px 20px; }
+  .scan-card { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="history-wrap">
+
+  <div class="page-header">
+    <div class="page-title">Historique des scans</div>
+    <div class="page-sub" id="history-sub">Chargement…</div>
+  </div>
+
+  <div class="history-grid" id="history-list"></div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+  const user = JSON.parse(localStorage.getItem('ss_user') || 'null');
+
+  if (!user) {
+    document.getElementById('history-list').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">Connectez-vous pour voir votre historique</div><div class="empty-sub">Cliquez sur "Connexion" dans la barre de navigation</div></div>';
+    document.getElementById('history-sub').textContent = 'Non connecté';
+    return;
+  }
+
+  // Données mock — à remplacer par une vraie API plus tard
+  const scans = [
+    {
+      id: 1, repo: 'github.com/juice-shop/juice-shop',
+      date: '2 mars 2026 · 16h42', score: 42, scoreClass: 'score-bad',
+      vulns: { critical: 3, high: 6, medium: 4, low: 2 },
+    },
+    {
+      id: 2, repo: 'github.com/OWASP/WebGoat',
+      date: '1 mars 2026 · 11h15', score: 58, scoreClass: 'score-med',
+      vulns: { critical: 1, high: 4, medium: 3, low: 5 },
+    },
+    {
+      id: 3, repo: 'github.com/fluffy1211/securescan-groupe-1',
+      date: '28 fév. 2026 · 09h03', score: 81, scoreClass: 'score-good',
+      vulns: { critical: 0, high: 1, medium: 2, low: 3 },
+    },
+  ];
+
+  document.getElementById('history-sub').textContent =
+    user.email + ' · ' + scans.length + ' scan' + (scans.length > 1 ? 's' : '') + ' effectué' + (scans.length > 1 ? 's' : '');
+
+  const html = scans.map(s => `
+    <a class="scan-card" href="/dashboard">
+      <div class="scan-left">
+        <div class="scan-repo">
+          <span class="scan-repo-icon">◈</span>
+          ${s.repo}
+        </div>
+        <div class="scan-meta">
+          <span class="scan-date">📅 ${s.date}</span>
+          <div class="scan-badges">
+            ${s.vulns.critical ? `<span class="sev-badge sev-c">${s.vulns.critical} Critical</span>` : ''}
+            ${s.vulns.high     ? `<span class="sev-badge sev-h">${s.vulns.high} High</span>` : ''}
+            ${s.vulns.medium   ? `<span class="sev-badge sev-m">${s.vulns.medium} Medium</span>` : ''}
+            ${s.vulns.low      ? `<span class="sev-badge sev-l">${s.vulns.low} Low</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="scan-right">
+        <div class="scan-score">
+          <span class="scan-score-num ${s.scoreClass}">${s.score}</span>
+          <span class="scan-score-lbl">Score</span>
+        </div>
+        <span class="scan-arrow">›</span>
+      </div>
+    </a>
+  `).join('');
+
+  document.getElementById('history-list').innerHTML = html;
+})();
+</script>
+{% endblock %}

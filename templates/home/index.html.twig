@@ -5,12 +5,10 @@
 {% block stylesheets %}
 <style>
 .home {
-  min-height: calc(100vh - 58px);
+  height: calc(100vh - 58px);
   width: 100%;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 60px 40px;
-  position: relative; overflow: hidden;
+  position: relative;
+  overflow: hidden;
   text-align: center;
 }
 .home-noise {
@@ -36,14 +34,16 @@
   pointer-events: none;
 }
 .home-body {
-  position: relative;
-  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 80px);
   max-width: 680px;
-  width: 100%;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
 }
 .home-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
@@ -156,4 +156,15 @@
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.querySelector('.scan-form')?.addEventListener('submit', function () {
+  const repo = document.querySelector('.scan-input')?.value?.trim();
+  if (repo) {
+    localStorage.setItem('ss_last_scan', JSON.stringify({ repo: repo, date: new Date().toISOString() }));
+  }
+});
+</script>
 {% endblock %}
