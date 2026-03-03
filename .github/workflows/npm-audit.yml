@@ -1,0 +1,26 @@
+name: NPM Audit
+
+on:
+  push:
+    branches: [ main, develop, ayman-dev, chahra-dev, gabriel-dev, rayan-dev, master ]
+  pull_request:
+    branches: [ main]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
