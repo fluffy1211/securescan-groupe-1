@@ -4,99 +4,45 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use Symfony\Component\Process\Process;
-
-class ComposerAuditService
+/**
+ * Scanner de dépendances PHP via `composer audit`.
+ *
+ * Hérite de AbstractPackageAuditService : seules la configuration de l'outil
+ * et la normalisation du JSON de sortie sont implémentées ici.
+ */
+class ComposerAuditService extends AbstractPackageAuditService
 {
-    private const TIMEOUT = 60;
-
-    /**
-     * Lance composer audit sur le dossier $path et retourne les advisories normalisés.
-     *
-     * @return array<int, array{
-     *   tool: string,
-     *   package: string,
-     *   version: string,
-     *   cve: string|null,
-     *   title: string,
-     *   severity: string,
-     *   url: string|null,
-     *   reported_at: string|null,
-     *   owasp: null,
-     *   fix: string|null
-     * }>
-     *
-     * @throws \RuntimeException
-     */
-    public function scan(string $path): array
+    protected function getToolName(): string
     {
-        if (!is_dir($path)) {
-            throw new \RuntimeException("Dossier introuvable : $path");
-        }
-
-        if (!file_exists($path . '/composer.json')) {
-            throw new \RuntimeException('Aucun composer.json trouvé');
-        }
-
-        if (!file_exists($path . '/composer.lock')) {
-            throw new \RuntimeException('composer.lock manquant');
-        }
-
-        if (!$this->isComposerAvailable()) {
-            throw new \RuntimeException('Composer non disponible');
-        }
-
-        $output = $this->runAudit($path);
-        if (trim($output) === '') {
-            return [];
-        }
-
-        try {
-            $data = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            throw new \RuntimeException('Impossible de parser les résultats');
-        }
-
-        if (!is_array($data)) {
-            throw new \RuntimeException('Impossible de parser les résultats');
-        }
-
-        return $this->normalize($data);
+        return 'composer_audit';
     }
 
-    protected function isComposerAvailable(): bool
+    protected function getManifestFile(): string
     {
-        $process = new Process(['composer', '--version']);
-        $process->setTimeout(10);
-        $process->run();
+        return 'composer.json';
+    }
 
-        return $process->getExitCode() === 0;
+    protected function getLockFile(): string
+    {
+        return 'composer.lock';
+    }
+
+    protected function getVersionCommand(): array
+    {
+        return ['composer', '--version'];
+    }
+
+    protected function getAuditCommand(): array
+    {
+        return ['composer', 'audit', '--locked', '--format=json'];
     }
 
     /**
-     * Exécute composer audit --format=json et retourne le stdout brut.
-     * Exit code 1 signifie "vulnérabilités trouvées" — ce n'est PAS une erreur.
+     * Normalise la sortie de `composer audit --format=json`.
+     * Structure attendue : { "advisories": { "vendor/pkg": [ {...}, ... ] } }
+     * Chaque advisory est aplati en tableau associatif uniforme.
      */
-    protected function runAudit(string $path): string
-    {
-        $process = new Process(
-            ['composer', 'audit', '--format=json'],
-            $path,
-        );
-        $process->setTimeout(self::TIMEOUT);
-        $process->run();
-
-        $output = $process->getOutput();
-        // Important: ne jamais se baser sur isSuccessful() ici.
-        // composer audit retourne 1 quand des vulnérabilités sont trouvées.
-
-        return $output;
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function normalize(array $data): array
+    protected function normalize(array $data): array
     {
         $advisories = $data['advisories'] ?? [];
         $result = [];
@@ -114,7 +60,7 @@ class ComposerAuditService
     }
 
     /**
-     * @return array<string, mixed>
+     * Transforme un advisory brut Composer en tableau normalisé.
      */
     private function normalizeAdvisory(string $packageName, array $advisory): array
     {
@@ -129,7 +75,7 @@ class ComposerAuditService
             'cve'         => $advisory['cve'] ?? null,
             'title'       => $advisory['title'] ?? '',
             'severity'    => strtolower((string) ($advisory['severity'] ?? 'unknown')),
-            'url'         => $advisory['url'] ?? null,
+            'url'         => $advisory['link'] ?? $advisory['url'] ?? null,
             'reported_at' => $reportedAt,
             'owasp'       => null,
             'fix'         => $this->buildFixCommand($packageName, $affectedVersions),
@@ -137,29 +83,24 @@ class ComposerAuditService
     }
 
     /**
-     * Extrait la borne supérieure de affectedVersions pour construire la commande fix.
-     * Ex : ">=5.4.0,<5.4.47" → "composer require vendor/pkg:^5.4.47"
+     * Construit une commande de correctif à partir de la plage de versions affectées.
+     * Exemple : ">=5.4.0,<5.4.47" → "composer require vendor/pkg:^5.4.47"
+     * Retourne null si on ne peut pas extraire une version sûre.
      */
     private function buildFixCommand(string $package, string $affectedVersions): ?string
     {
-        $safeVersion = $this->extractSafeVersion($affectedVersions);
-        if ($safeVersion !== null) {
-            return sprintf('composer require %s:^%s', $package, $safeVersion);
-        }
-
-        return null;
-    }
-
-    private function extractSafeVersion(string $affectedVersions): ?string
-    {
-        // Exemples gérés: ">=5.4.0,<5.4.47", "<=2.8.52", "<1.2.3"
+        // On extrait la borne supérieure (le "<" ou "<=") comme version minimale sûre
         if (preg_match('/<\s*=?\s*v?(\d+(?:\.\d+){1,3})/i', $affectedVersions, $matches) !== 1) {
             return null;
         }
 
-        return $matches[1];
+        return sprintf('composer require %s:^%s', $package, $matches[1]);
     }
 
+    /**
+     * Parse une date brute (format variable) en format ISO "Y-m-d".
+     * Retourne null si la date est absente ou invalide.
+     */
     private function parseDate(?string $rawDate): ?string
     {
         if ($rawDate === null || $rawDate === '') {

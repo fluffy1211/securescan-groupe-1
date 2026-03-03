@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\Entity\ScanJob;
-use App\Service\ScannerService;
+use App\Service\AuditOrchestratorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: 'app:scan',
-    description: 'Scan a GitHub repository for vulnerabilities using Semgrep',
+    description: 'Audit a GitHub repository for vulnerabilities',
 )]
 /**
  * Commande console pour déclencher un scan de sécurité sur un dépôt GitHub.
@@ -22,8 +22,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ScanRepoCommand extends Command
 {
     public function __construct(
-        private ScannerService $scannerService,
-        private EntityManagerInterface $em
+        private AuditOrchestratorService $orchestrator,
+        private EntityManagerInterface $em,
     ) {
         parent::__construct();
     }
@@ -46,8 +46,8 @@ class ScanRepoCommand extends Command
         $this->em->flush();
 
         try {
-            // Délégation au service : clone, analyse Semgrep, persistance des résultats
-            $this->scannerService->scan($job);
+            // Délégation à l'orchestrateur : clone, Semgrep, Composer audit, npm audit, score, persistance
+            $this->orchestrator->audit($job);
         } catch (\Throwable $e) {
             $output->writeln(json_encode([
                 'status' => 'failed',
@@ -62,6 +62,7 @@ class ScanRepoCommand extends Command
         foreach ($job->getVulnerabilities() as $vuln) {
             $vulns[] = [
                 'id'             => $vuln->getId(),
+                'tool'           => $vuln->getTool(),
                 'severity'       => $vuln->getSeverity(),
                 'file'           => $vuln->getFilePath(),
                 'line'           => $vuln->getLineNumber(),
@@ -72,6 +73,7 @@ class ScanRepoCommand extends Command
             ];
         }
 
+        // Affichage du résumé JSON dans la console
         $output->writeln(json_encode([
             'status'           => $job->getStatus(),
             'job_id'           => $job->getId(),
