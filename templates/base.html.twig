@@ -1,16 +1,175 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SecureScan{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Cabinet+Grotesk:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:         #07090F;
+  --bg2:        #0C0F1A;
+  --surface:    #111622;
+  --card:       #141926;
+  --card2:      #181E2E;
+  --border:     #1F2A3F;
+  --border2:    #263348;
+  --cyan:       #00D9F5;
+  --cyan-dim:   rgba(0,217,245,0.12);
+  --cyan-glow:  rgba(0,217,245,0.06);
+  --red:        #F5365C;
+  --red-dim:    rgba(245,54,92,0.12);
+  --green:      #36F5A0;
+  --green-dim:  rgba(54,245,160,0.1);
+  --amber:      #F5A623;
+  --amber-dim:  rgba(245,166,35,0.12);
+  --orange:     #F57536;
+  --text:       #DDE3F0;
+  --text2:      #8A97B0;
+  --text3:      #4A5568;
+  --font-sans: 'Cabinet Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
 
-        {% block javascripts %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* NAV */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 58px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(7,9,15,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 200;
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo-mark {
+  width: 28px; height: 28px;
+  background: var(--cyan);
+  border-radius: var(--radius-sm);
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.8rem; font-weight: 700;
+  color: var(--bg); flex-shrink: 0; position: relative;
+}
+.nav-logo-mark::after {
+  content: '';
+  position: absolute; inset: -3px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,217,245,0.3);
+}
+.nav-logo-text { font-size: 0.95rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+.nav-logo-text span { color: var(--cyan); }
+.nav-center {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+.nav-tab {
+  font-family: var(--font-mono);
+  font-size: 0.68rem; letter-spacing: 0.5px;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  color: var(--text3); cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.nav-tab:hover { color: var(--text2); background: var(--card); }
+.nav-tab.active { background: var(--card2); color: var(--cyan); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-status {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--font-mono); font-size: 0.65rem;
+  color: var(--text3); letter-spacing: 0.5px;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 3s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.nav-version {
+  font-family: var(--font-mono); font-size: 0.62rem;
+  padding: 4px 10px;
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  border-radius: var(--radius-sm); letter-spacing: 1px;
+}
+
+/* SEVERITY BADGES */
+.sev-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 0.6rem;
+  padding: 3px 9px; border-radius: 4px; border: 1px solid;
+  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+}
+.sev-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.sev-c { color: var(--red);    border-color: rgba(245,54,92,0.35);  background: rgba(245,54,92,0.07); }
+.sev-h { color: var(--amber);  border-color: rgba(245,166,35,0.35); background: rgba(245,166,35,0.07); }
+.sev-m { color: var(--orange); border-color: rgba(245,117,54,0.35); background: rgba(245,117,54,0.07); }
+.sev-l { color: var(--green);  border-color: rgba(54,245,160,0.35); background: rgba(54,245,160,0.07); }
+
+/* OWASP PILLS */
+.owasp-pill {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: 0.6rem;
+  padding: 3px 8px; border-radius: 4px; border: 1px solid;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.op-a05 { color: var(--red);   border-color: rgba(245,54,92,0.3);  background: rgba(245,54,92,0.06); }
+.op-a07 { color: var(--amber); border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.06); }
+.op-a01 { color: var(--cyan);  border-color: rgba(0,217,245,0.3);  background: rgba(0,217,245,0.06); }
+
+{% block stylesheets %}{% endblock %}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="{{ path('app_home') }}">
+    <div class="nav-logo-mark">S</div>
+    <span class="nav-logo-text">Secure<span>Scan</span></span>
+  </a>
+  <div class="nav-center">
+    <a class="nav-tab {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}"
+       href="{{ path('app_home') }}">Accueil</a>
+    <a class="nav-tab {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}"
+       href="{{ path('app_dashboard') }}">Dashboard</a>
+  </div>
+  <div class="nav-right"></div>
+</nav>
+
+{% block body %}{% endblock %}
+
+{% block javascripts %}{% endblock %}
+</body>
 </html>
