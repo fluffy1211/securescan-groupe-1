@@ -10,4 +10,7 @@
 
 ###< symfony/framework-bundle ###
 
-audit-results.json
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
