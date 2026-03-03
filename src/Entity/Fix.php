@@ -26,8 +26,9 @@ class Fix
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $branchName = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $vulnerability = null;
+    #[ORM\ManyToOne(targetEntity: Vulnerability::class, inversedBy: 'fixes')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Vulnerability $vulnerability = null;
 
     public function getId(): ?int
     {
@@ -82,12 +83,12 @@ class Fix
         return $this;
     }
 
-    public function getVulnerability(): ?string
+    public function getVulnerability(): ?Vulnerability
     {
         return $this->vulnerability;
     }
 
-    public function setVulnerability(string $vulnerability): static
+    public function setVulnerability(?Vulnerability $vulnerability): static
     {
         $this->vulnerability = $vulnerability;
 
