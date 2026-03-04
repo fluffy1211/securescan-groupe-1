@@ -59,6 +59,13 @@ services:
       # et peut être nettoyé avec `make clean-scans`.
       - scan-tmp:/tmp/securescan-scans
 
+      # ── Base de données SQLite ────────────────────────────────────────────
+      # IMPORTANT : la DB est dans un volume Docker natif (Linux), PAS dans
+      # le volume macOS (.:/var/www/html). VirtioFS ne supporte pas les locks
+      # fichiers SQLite → errno=35 "Resource deadlock avoided".
+      # Ce volume garantit des I/O Linux natifs et un locking SQLite correct.
+      - sqlite-data:/var/www/html/var
+
     environment:
       # ── Symfony ────────────────────────────────────────────────────────────
       APP_ENV: ${APP_ENV:-dev}
@@ -158,4 +165,8 @@ volumes:
   # Fichiers temporaires des scans Semgrep
   # Contient les repos clonés et les résultats JSON bruts
   scan-tmp:
+
+  # Base de données SQLite dans un volume Docker natif
+  # Évite les problèmes de locking SQLite sur VirtioFS (macOS) et NFS (Windows)
+  sqlite-data:
 

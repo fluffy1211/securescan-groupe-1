@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ScanJob;
+use App\Repository\ScanJobRepository;
 use App\Service\AuditOrchestratorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+
 class ScanController extends AbstractController
 {
     #[Route('/scan/launch', name: 'app_scan_launch', methods: ['POST'])]
@@ -39,8 +41,14 @@ class ScanController extends AbstractController
     }
 
     #[Route('/scan/{id}/loading', name: 'app_scan_loading')]
-    public function loading(ScanJob $job): Response
+    public function loading(int $id, ScanJobRepository $repo): Response
     {
+        $job = $repo->find($id);
+        if (!$job) {
+            $this->addFlash('error', 'Scan introuvable. Lancez une nouvelle analyse.');
+            return $this->redirectToRoute('app_home');
+        }
+
         if ($job->getStatus() === 'done') {
             return $this->redirectToRoute('app_dashboard', ['id' => $job->getId()]);
         }
@@ -49,8 +57,13 @@ class ScanController extends AbstractController
     }
 
     #[Route('/scan/{id}/run', name: 'app_scan_run', methods: ['POST'])]
-    public function run(ScanJob $job, AuditOrchestratorService $orchestrator): JsonResponse
+    public function run(int $id, ScanJobRepository $repo, AuditOrchestratorService $orchestrator): JsonResponse
     {
+        $job = $repo->find($id);
+        if (!$job) {
+            return $this->json(['status' => 'failed', 'error' => 'Scan introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
         if ($job->getStatus() === 'done') {
             return $this->json([
                 'status'      => 'done',

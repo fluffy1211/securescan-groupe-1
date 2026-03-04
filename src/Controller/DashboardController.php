@@ -16,14 +16,23 @@ use Symfony\Component\Routing\Attribute\Route;
 class DashboardController extends AbstractController
 {
     #[Route('/dashboard/{id}', name: 'app_dashboard', requirements: ['id' => '\d+'])]
-    public function index(ScanJob $job): Response
+    public function index(int $id, ScanJobRepository $repo): Response
     {
+        $job = $repo->find($id);
+        if (!$job) {
+            $this->addFlash('error', 'Scan introuvable. Lancez une nouvelle analyse.');
+            return $this->redirectToRoute('app_home');
+        }
         return $this->render('dashboard/index.html.twig', ['job' => $job]);
     }
 
     #[Route('/dashboard/{id}/export/json', name: 'app_dashboard_export_json', requirements: ['id' => '\d+'])]
-    public function exportJson(ScanJob $job): JsonResponse
+    public function exportJson(int $id, ScanJobRepository $repo): JsonResponse
     {
+        $job = $repo->find($id);
+        if (!$job) {
+            return $this->json(['error' => 'Scan introuvable.'], Response::HTTP_NOT_FOUND);
+        }
         $vulns = [];
         foreach ($job->getVulnerabilities() as $vuln) {
             $vulns[] = [
@@ -63,8 +72,13 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/dashboard/{id}/export/pdf', name: 'app_dashboard_export_pdf', requirements: ['id' => '\d+'])]
-    public function exportPdf(ScanJob $job): Response
+    public function exportPdf(int $id, ScanJobRepository $repo): Response
     {
+        $job = $repo->find($id);
+        if (!$job) {
+            $this->addFlash('error', 'Scan introuvable.');
+            return $this->redirectToRoute('app_home');
+        }
         $html = $this->renderView('dashboard/export_pdf.html.twig', ['job' => $job]);
 
         $options = new Options();
