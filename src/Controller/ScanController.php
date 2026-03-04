@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ScanJob;
+use App\Enum\ScanStatus;
 use App\Repository\ScanJobRepository;
 use App\Service\AuditOrchestratorService;
 use Doctrine\ORM\EntityManagerInterface;
