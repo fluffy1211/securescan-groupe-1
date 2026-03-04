@@ -34,17 +34,23 @@ class DashboardController extends AbstractController
             return $this->json(['error' => 'Scan introuvable.'], Response::HTTP_NOT_FOUND);
         }
         $vulns = [];
+        $severityCounts = ['error' => 0, 'warning' => 0, 'info' => 0];
+
         foreach ($job->getVulnerabilities() as $vuln) {
+            $severity = $vuln->getSeverity();
             $vulns[] = [
                 'id'            => $vuln->getId(),
                 'tool'          => $vuln->getTool(),
                 'title'         => $vuln->getTitle(),
-                'severity'      => $vuln->getSeverity(),
+                'severity'      => $severity,
                 'file'          => $vuln->getFilePath(),
                 'line'          => $vuln->getLineNumber(),
                 'owasp'         => $vuln->getOwaspCategory(),
                 'description'   => $vuln->getDescription(),
             ];
+            if (isset($severityCounts[$severity])) {
+                $severityCounts[$severity]++;
+            }
         }
 
         $data = [
@@ -52,21 +58,20 @@ class DashboardController extends AbstractController
                 'id'          => $job->getId(),
                 'repo'        => $job->getRepoUrl(),
                 'score'       => $job->getGlobalScore(),
-                'status'      => $job->getStatus(),
+                'status'      => $job->getStatus()?->value,
                 'scanned_at'  => $job->getFinishedAt()?->format(\DateTimeInterface::ATOM),
             ],
             'summary' => [
-                'total'    => count($vulns),
-                'error'    => count(array_filter($vulns, fn($v) => $v['severity'] === 'error')),
-                'warning'  => count(array_filter($vulns, fn($v) => $v['severity'] === 'warning')),
-                'info'     => count(array_filter($vulns, fn($v) => $v['severity'] === 'info')),
+                'total'   => count($vulns),
+                'error'   => $severityCounts['error'],
+                'warning' => $severityCounts['warning'],
+                'info'    => $severityCounts['info'],
             ],
             'vulnerabilities' => $vulns,
         ];
 
         $response = new JsonResponse($data);
-        $filename = 'securescan-' . $job->getId() . '-' . date('Ymd') . '.json';
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $this->buildExportFilename($job, 'json') . '"');
 
         return $response;
     }
@@ -90,14 +95,12 @@ class DashboardController extends AbstractController
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        $filename = 'securescan-' . $job->getId() . '-' . date('Ymd') . '.pdf';
-
         return new Response(
             $dompdf->output(),
             Response::HTTP_OK,
             [
                 'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Disposition' => 'attachment; filename="' . $this->buildExportFilename($job, 'pdf') . '"',
             ]
         );
     }
@@ -112,5 +115,11 @@ class DashboardController extends AbstractController
         }
 
         return $this->redirectToRoute('app_home');
+    }
+
+    private function buildExportFilename(ScanJob $job, string $extension): string
+    {
+        $date = (new \DateTimeImmutable())->format('Ymd');
+        return sprintf('securescan-%d-%s.%s', $job->getId(), $date, $extension);
     }
 }

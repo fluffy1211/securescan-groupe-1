@@ -7,6 +7,7 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\ScanJob;
+use App\Enum\ScanStatus;
 use App\Service\AuditOrchestratorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -35,7 +36,7 @@ final class ScanJobProcessor implements ProcessorInterface
             $data->setUser($user);
         }
 
-        $data->setStatus('pending');
+        $data->setStatus(ScanStatus::PENDING);
 
         $this->em->persist($data);
         $this->em->flush();

@@ -28,7 +28,7 @@ class ScanController extends AbstractController
 
         $job = new ScanJob();
         $job->setRepoUrl($repoUrl);
-        $job->setStatus('pending');
+        $job->setStatus(ScanStatus::PENDING);
 
         if ($this->getUser()) {
             $job->setUser($this->getUser());

@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\ScanJob;
+use App\Enum\ScanStatus;
 use App\Service\AuditOrchestratorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -40,7 +41,7 @@ class ScanRepoCommand extends Command
         // Création du ScanJob en base avec le statut initial 'pending'
         $job = new ScanJob();
         $job->setRepoUrl($repoUrl);
-        $job->setStatus('pending');
+        $job->setStatus(ScanStatus::PENDING);
 
         $this->em->persist($job);
         $this->em->flush();
@@ -75,7 +76,7 @@ class ScanRepoCommand extends Command
 
         // Affichage du résumé JSON dans la console
         $output->writeln(json_encode([
-            'status'           => $job->getStatus(),
+            'status'           => $job->getStatus()?->value,
             'job_id'           => $job->getId(),
             'repo'             => $job->getRepoUrl(),
             'score'            => $job->getGlobalScore(),
