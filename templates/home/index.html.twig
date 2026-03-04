@@ -132,13 +132,13 @@
       npm audit &amp; Composer, mappe sur l'OWASP et génère un rapport complet.
     </p>
 
-    <form class="scan-form" action="{{ path('app_dashboard') }}" method="GET">
+    <form class="scan-form" action="{{ path('app_scan_launch') }}" method="POST">
       <div class="scan-prefix">
         <span style="color:var(--primary)">❯</span>
         git clone
       </div>
       <input class="scan-input" type="text" name="repo"
-        placeholder="https://github.com/organisation/projet.git" />
+        placeholder="https://github.com/organisation/projet.git" required />
       <button class="scan-submit" type="submit">
         Analyser →
       </button>

@@ -6,12 +6,10 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use ApiPlatform\Metadata\ApiResource;
 
-#[ApiResource()]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-class User implements PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -22,8 +20,11 @@ class User implements PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     /**
-     * @var string The hashed password
+     * @var list<string>
      */
+    #[ORM\Column]
+    private array $roles = [];
+
     #[ORM\Column]
     private ?string $password = null;
 
@@ -48,6 +49,24 @@ class User implements PasswordAuthenticatedUserInterface
         return (string) $this->email;
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+        return array_unique($roles);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
+    }
 
     public function getPassword(): ?string
     {
@@ -60,6 +79,14 @@ class User implements PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function __serialize(): array
+    {
+        $data = (array) $this;
+        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
+        return $data;
+    }
+
+    #[\Deprecated]
     public function eraseCredentials(): void
     {
     }

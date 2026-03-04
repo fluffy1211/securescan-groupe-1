@@ -201,8 +201,8 @@ a { color: inherit; }
 
   {% if app.user and app.request.attributes.get('_route') not in ['app_login', 'app_register'] %}
   <div class="nav-center" id="nav-center-pill" style="display:none">
-    <a class="nav-tab {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}"
-       id="nav-dashboard" href="{{ path('app_dashboard') }}">Dashboard</a>
+    <a class="nav-tab {% if app.request.attributes.get('_route') in ['app_dashboard', 'app_dashboard_empty'] %}active{% endif %}"
+       id="nav-dashboard" href="{{ path('app_dashboard_empty') }}">Dashboard</a>
   </div>
   {% endif %}
 

@@ -81,12 +81,6 @@
     <div class="page-sub">{{ app.user.email }}</div>
   </div>
 
-  {% set scans = [
-    { repo: 'github.com/juice-shop/juice-shop',          date: '2 mars 2026 · 16h42',  score: 42, scoreClass: 'score-bad',  critical: 3, high: 6, medium: 4, low: 2 },
-    { repo: 'github.com/OWASP/WebGoat',                  date: '1 mars 2026 · 11h15',  score: 58, scoreClass: 'score-med',  critical: 1, high: 4, medium: 3, low: 5 },
-    { repo: 'github.com/fluffy1211/securescan-groupe-1', date: '28 fév. 2026 · 09h03', score: 81, scoreClass: 'score-good', critical: 0, high: 1, medium: 2, low: 3 },
-  ] %}
-
   {% if scans is empty %}
     <div class="empty-state">
       <div class="empty-icon">🔍</div>
@@ -97,25 +91,36 @@
   {% else %}
     <div class="history-grid">
       {% for s in scans %}
-      <a class="scan-card" href="{{ path('app_dashboard') }}">
+      {% set countError   = s.vulnerabilities|filter(v => v.severity == 'error')|length %}
+      {% set countWarning = s.vulnerabilities|filter(v => v.severity == 'warning')|length %}
+      {% set countInfo    = s.vulnerabilities|filter(v => v.severity == 'info')|length %}
+      {% set score        = s.globalScore ?? 0 %}
+      {% set scoreClass   = score >= 80 ? 'score-good' : (score >= 50 ? 'score-med' : 'score-bad') %}
+      <a class="scan-card" href="{{ path('app_dashboard', {id: s.id}) }}">
         <div class="scan-left">
           <div class="scan-repo">
             <div class="scan-repo-icon">◈</div>
-            {{ s.repo }}
+            {{ s.repoUrl|replace({'https://': '', 'http://': ''}) }}
           </div>
           <div class="scan-meta">
-            <span>📅 {{ s.date }}</span>
-            <div class="scan-badges">
-              {% if s.critical %}<span class="sev-badge sev-c">{{ s.critical }} Critical</span>{% endif %}
-              {% if s.high     %}<span class="sev-badge sev-h">{{ s.high }} High</span>{% endif %}
-              {% if s.medium   %}<span class="sev-badge sev-m">{{ s.medium }} Medium</span>{% endif %}
-              {% if s.low      %}<span class="sev-badge sev-l">{{ s.low }} Low</span>{% endif %}
-            </div>
+            <span>📅 {{ s.createdAt|date('d/m/Y à H\\hi') }}</span>
+            {% if s.status == 'failed' %}
+              <span class="sev-badge sev-c">Échec</span>
+            {% elseif s.status == 'pending' or s.status == 'running' %}
+              <span class="sev-badge" style="background:rgba(217,119,6,0.1);color:var(--amber);border-color:rgba(217,119,6,0.2)">En cours</span>
+            {% else %}
+              <div class="scan-badges">
+                {% if countError   > 0 %}<span class="sev-badge sev-c">{{ countError }} Error</span>{% endif %}
+                {% if countWarning > 0 %}<span class="sev-badge sev-h">{{ countWarning }} Warning</span>{% endif %}
+                {% if countInfo    > 0 %}<span class="sev-badge sev-l">{{ countInfo }} Info</span>{% endif %}
+                {% if s.vulnerabilities|length == 0 %}<span class="sev-badge sev-l">✓ Propre</span>{% endif %}
+              </div>
+            {% endif %}
           </div>
         </div>
         <div class="scan-right">
           <div class="scan-score">
-            <span class="scan-score-num {{ s.scoreClass }}">{{ s.score }}</span>
+            <span class="scan-score-num {{ scoreClass }}">{{ score }}</span>
             <span class="scan-score-lbl">Score</span>
           </div>
           <span class="scan-arrow">›</span>

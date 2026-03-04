@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Symfony\Component\Process\Process;
+
 /**
  * Scanner de dépendances JavaScript via `npm audit`.
  *
@@ -35,6 +37,40 @@ class NpmAuditService extends AbstractPackageAuditService
     protected function getAuditCommand(): array
     {
         return ['npm', 'audit', '--json'];
+    }
+
+    /**
+     * Surcharge : génère package-lock.json si absent avant l'audit.
+     * Certains projets (ex: dvna) n'ont que package.json sans lockfile committé.
+     * `npm install --package-lock-only` crée le lockfile sans installer les modules.
+     */
+    public function scan(string $path): array
+    {
+        if (!is_dir($path)) {
+            throw new \RuntimeException("Dossier introuvable : $path");
+        }
+        if (!file_exists($path . '/' . $this->getManifestFile())) {
+            throw new \RuntimeException($this->getManifestFile() . ' introuvable');
+        }
+        if (!$this->isToolAvailable()) {
+            throw new \RuntimeException($this->getToolName() . ' non disponible');
+        }
+
+        // Génère package-lock.json si manquant (sans installer les node_modules)
+        if (!file_exists($path . '/' . $this->getLockFile())) {
+            $install = new Process(
+                ['npm', 'install', '--package-lock-only', '--ignore-scripts'],
+                $path
+            );
+            $install->setTimeout(120);
+            $install->run();
+
+            if (!file_exists($path . '/' . $this->getLockFile())) {
+                throw new \RuntimeException('Impossible de générer package-lock.json');
+            }
+        }
+
+        return parent::scan($path);
     }
 
     /**

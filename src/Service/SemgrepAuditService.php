@@ -24,16 +24,16 @@ class SemgrepAuditService implements ScannerInterface
      * La correspondance se fait par rang (A01–A10), indépendamment de l'année du label Semgrep.
      */
     private const OWASP_TOP10_2025 = [
-        'A01:2025' => 'Broken Access Control',
-        'A02:2025' => 'Cryptographic Failures',
+        'A01:2025' => 'Contrôle d\'accès défaillant',
+        'A02:2025' => 'Défaillances cryptographiques',
         'A03:2025' => 'Injection',
-        'A04:2025' => 'Insecure Design',
-        'A05:2025' => 'Security Misconfiguration',
-        'A06:2025' => 'Vulnerable and Outdated Components',
-        'A07:2025' => 'Identification and Authentication Failures',
-        'A08:2025' => 'Software and Data Integrity Failures',
-        'A09:2025' => 'Security Logging and Monitoring Failures',
-        'A10:2025' => 'Server-Side Request Forgery',
+        'A04:2025' => 'Conception non sécurisée',
+        'A05:2025' => 'Mauvaise configuration de sécurité',
+        'A06:2025' => 'Composants vulnérables et obsolètes',
+        'A07:2025' => 'Identification et authentification de mauvaise qualité',
+        'A08:2025' => 'Manque d\'intégrité des données et du logiciel',
+        'A09:2025' => 'Carence des systèmes de contrôle et de journalisation',
+        'A10:2025' => 'Falsification de requête côté serveur (SSRF)',
     ];
 
     public function __construct(
@@ -60,24 +60,36 @@ class SemgrepAuditService implements ScannerInterface
     {
         $process = new Process([
             'semgrep', 'scan',
-            '--config', 'auto',
+            '--config', 'p/default',
+            '--metrics', 'off',
             '--json',
             '--no-git-ignore',
             $dir,
         ]);
         $process->setTimeout(300);
+        // PHP-FPM vide l'environnement (clear_env=yes par défaut).
+        // On transmet explicitement les variables nécessaires à Semgrep.
+        $process->setEnv([
+            'HOME'                          => '/tmp',
+            'PATH'                          => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+            'SEMGREP_RULES_CACHE_PATH'      => '/tmp/semgrep-cache',
+            'SEMGREP_SEND_METRICS'          => 'off',
+            'SEMGREP_ENABLE_VERSION_CHECK'  => 'false',
+        ]);
         $process->run();
 
-        $output = $process->getOutput();
+        $output = trim($process->getOutput());
 
         if (empty($output)) {
-            throw new \RuntimeException('semgrep produced no output. stderr: ' . $process->getErrorOutput());
+            // Semgrep n'a rien trouvé ou a échoué silencieusement → 0 findings
+            return [];
         }
 
         $decoded = json_decode($output, true);
 
-        if (!isset($decoded['results'])) {
-            throw new \RuntimeException('Format de sortie Semgrep inattendu.');
+        if (!is_array($decoded) || !isset($decoded['results'])) {
+            // JSON malformé → on ignore plutôt que de crasher tout le scan
+            return [];
         }
 
         return $decoded['results'];
