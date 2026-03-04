@@ -240,10 +240,10 @@ a { color: inherit; }
 {% block javascripts %}{% endblock %}
 
 <script>
+const pill = document.getElementById('nav-center-pill');
 const dashTab = document.getElementById('nav-dashboard');
-if (dashTab && localStorage.getItem('ss_last_scan')) {
-  dashTab.style.display = 'flex';
-  if (dashTab.dataset.active) dashTab.classList.add('active');
+if (pill && dashTab && localStorage.getItem('ss_last_scan')) {
+  pill.style.display = 'flex';
 }
 </script>
 </body>
