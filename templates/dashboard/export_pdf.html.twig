@@ -6,7 +6,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
 
-  .header { background: linear-gradient(135deg, #FF6B6B, #A78BFA); color: #fff; padding: 24px 32px; margin-bottom: 24px; }
+  .header { background: linear-gradient(135deg, #FF6B6B, #A78BFA); color: #fff; padding: 24px 32px; margin-bottom: 0; }
   .header h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 4px; }
   .header .sub { font-size: 11px; opacity: 0.85; }
   .header .meta { margin-top: 10px; font-size: 10px; opacity: 0.75; }
@@ -54,6 +54,17 @@
 
   .owasp-tag { background: #ede9fe; color: #5b21b6; padding: 2px 7px; border-radius: 4px; font-size: 8px; font-weight: 600; }
 
+  /* Détail par vulnérabilité */
+  .vuln-detail-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 14px; overflow: hidden; page-break-inside: avoid; }
+  .vuln-detail-header { padding: 10px 14px; display: table; width: 100%; }
+  .vuln-detail-header .title { font-size: 11px; font-weight: 700; color: #1a1a2e; display: table-cell; vertical-align: middle; }
+  .vuln-detail-header .badges { display: table-cell; text-align: right; vertical-align: middle; white-space: nowrap; }
+  .vuln-detail-body { padding: 10px 14px; background: #fafafa; border-top: 1px solid #f3f4f6; }
+  .vuln-field { margin-bottom: 6px; }
+  .vuln-field .key { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #9ca3af; margin-bottom: 2px; }
+  .vuln-field .val { font-size: 10px; color: #374151; }
+  .vuln-field .val.code { font-family: monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
+
   .footer { margin-top: 32px; padding: 12px 32px; border-top: 1px solid #e5e7eb; font-size: 9px; color: #9ca3af; text-align: center; }
 
   .no-break { page-break-inside: avoid; }
@@ -76,7 +87,18 @@
   </div>
 </div>
 
-<div class="section">
+<div style="margin: 0 32px; padding: 16px 0 12px; border-bottom: 2px solid #f3f4f6;">
+  <div style="font-size: 20px; font-weight: 900; color: #1a1a2e; letter-spacing: -0.5px;">
+    Rapport d'analyse de sécurité
+  </div>
+  <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">
+    Dépôt analysé :
+    <span style="font-weight: 600; color: #374151;">{{ job.repoUrl|replace({'https://github.com/': ''}) }}</span>
+    · {{ vulns|length }} vulnérabilité{{ vulns|length > 1 ? 's' : '' }} détectée{{ vulns|length > 1 ? 's' : '' }}
+  </div>
+</div>
+
+<div class="section" style="margin-top: 16px;">
   <div class="section-title">Résumé</div>
   <div class="summary-row">
     <div class="summary-box score-box">
@@ -152,9 +174,9 @@
           {% if vuln.lineNumber %}<br>ligne {{ vuln.lineNumber }}{% endif %}
         </td>
         <td>
-          {% if vuln.severity == 'error' %}<span class="badge sev-error">Error</span>
-          {% elseif vuln.severity == 'warning' %}<span class="badge sev-warning">Warning</span>
-          {% else %}<span class="badge sev-info">Info</span>{% endif %}
+          {% if vuln.severity == 'error' %}<span class="badge sev-error">Critique</span>
+          {% elseif vuln.severity == 'warning' %}<span class="badge sev-warning">Modéré</span>
+          {% else %}<span class="badge sev-info">Information</span>{% endif %}
         </td>
         <td>
           {% if vuln.owaspCategory %}
@@ -167,6 +189,57 @@
   </table>
   {% endif %}
 </div>
+
+{% if vulns|length > 0 %}
+<div class="section" style="margin-top: 28px;">
+  <div class="section-title" style="font-size:15px; margin-bottom:16px;">Détail des vulnérabilités</div>
+
+  {% for vuln in vulns %}
+  <div class="vuln-detail-card">
+    <div class="vuln-detail-header"
+         style="background: {% if vuln.severity == 'error' %}#fff5f5{% elseif vuln.severity == 'warning' %}#fffbeb{% else %}#eff6ff{% endif %}">
+      <div class="title">{{ loop.index }}. {{ vuln.title }}</div>
+      <div class="badges">
+        <span class="tool-badge">{{ vuln.tool }}</span>
+        &nbsp;
+        {% if vuln.severity == 'error' %}<span class="badge sev-error">Critique</span>
+        {% elseif vuln.severity == 'warning' %}<span class="badge sev-warning">Modéré</span>
+        {% else %}<span class="badge sev-info">Information</span>{% endif %}
+      </div>
+    </div>
+    <div class="vuln-detail-body">
+      {% if vuln.description %}
+      <div class="vuln-field">
+        <div class="key">Description</div>
+        <div class="val">{{ vuln.description|vuln_fr(vuln.title) }}</div>
+      </div>
+      {% endif %}
+
+      <div style="display:table; width:100%; border-spacing: 0 0;">
+        <div style="display:table-row;">
+          <div style="display:table-cell; width:50%; padding-right:12px;">
+            {% if vuln.filePath %}
+            <div class="vuln-field">
+              <div class="key">Fichier</div>
+              <div class="val code">{{ vuln.filePath }}{% if vuln.lineNumber %} : ligne {{ vuln.lineNumber }}{% endif %}</div>
+            </div>
+            {% endif %}
+          </div>
+          <div style="display:table-cell; width:50%;">
+            {% if vuln.owaspCategory %}
+            <div class="vuln-field">
+              <div class="key">Catégorie OWASP</div>
+              <div class="val"><span class="owasp-tag" style="font-size:9px;">{{ vuln.owaspCategory }}</span></div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 <div class="footer">
   SecureScan · Rapport généré automatiquement · {{ "now"|date("d/m/Y") }}

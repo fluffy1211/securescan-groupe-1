@@ -38,6 +38,7 @@ class SemgrepAuditService implements ScannerInterface
 
     public function __construct(
         private EntityManagerInterface $em,
+        private DescriptionTranslatorService $translator,
     ) {}
 
     /**
@@ -106,10 +107,12 @@ class SemgrepAuditService implements ScannerInterface
             $vuln = new Vulnerability();
             $vuln->setTool('semgrep');
 
-            // L'identifiant de la règle Semgrep sert de titre (ex: "php.lang.security.injection")
-            $vuln->setTitle($result['check_id'] ?? 'Unknown');
+            $checkId = $result['check_id'] ?? 'Unknown';
+            $vuln->setTitle($checkId);
             $vuln->setSeverity(strtolower($result['extra']['severity'] ?? 'unknown'));
-            $vuln->setDescription($result['extra']['message'] ?? null);
+            $vuln->setDescription(
+                $this->translator->translate($result['extra']['message'] ?? null, $checkId)
+            );
 
             // On retire le préfixe du répertoire temporaire pour ne stocker que le chemin relatif
             $rawPath = $result['path'] ?? '';

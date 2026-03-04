@@ -79,7 +79,7 @@
   <div class="page-header">
     <div class="page-title">Historique des scans</div>
     <div class="page-sub">
-      {{ app.user.email }} · {{ scans|length }} scan{{ scans|length != 1 ? 's' : '' }} effectué{{ scans|length != 1 ? 's' : '' }}
+      {{ app.user.email }} · {{ scanJobs|length }} scan{{ scanJobs|length != 1 ? 's' : '' }} effectué{{ scanJobs|length != 1 ? 's' : '' }}
     </div>
   </div>
 

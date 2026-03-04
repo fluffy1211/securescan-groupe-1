@@ -144,7 +144,7 @@
         </div>
 
         {% if vuln.description %}
-        <div class="detail-desc">{{ vuln.description }}</div>
+        <div class="detail-desc">{{ vuln.description|vuln_fr(vuln.title) }}</div>
         {% endif %}
 
         <div class="meta-row">
@@ -188,11 +188,11 @@
           <div class="sev-row-label">Niveau de risque</div>
           <div class="sev-bar"><div class="sev-bar-fill"></div></div>
           {% if vuln.severity == 'error' %}
-            <span class="sev-badge sev-c" style="width:fit-content">Error — Critique</span>
+            <span class="sev-badge sev-c" style="width:fit-content">Critique</span>
           {% elseif vuln.severity == 'warning' %}
-            <span class="sev-badge sev-h" style="width:fit-content">Warning — Modéré</span>
+            <span class="sev-badge sev-h" style="width:fit-content">Modéré</span>
           {% else %}
-            <span class="sev-badge sev-l" style="width:fit-content">Info — Faible</span>
+            <span class="sev-badge sev-l" style="width:fit-content">Information</span>
           {% endif %}
         </div>
       </div>
