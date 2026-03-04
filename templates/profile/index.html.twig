@@ -3,113 +3,138 @@
 
 {% block stylesheets %}
 <style>
-.profile-wrap { padding: 36px 40px; max-width: 800px; margin: 0 auto; }
+.profile-wrap { padding: 36px 40px; max-width: 720px; margin: 0 auto; }
 .page-header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-.page-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.4px; }
+.page-title { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 4px; }
+.page-sub { font-size: 0.88rem; color: var(--text2); }
 
 .profile-grid { display: flex; flex-direction: column; gap: 16px; }
-.p-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-xl); padding: 28px; }
+
+.p-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl); padding: 28px;
+  box-shadow: var(--shadow);
+}
 .p-card-label {
-  font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3);
-  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px;
-  display: flex; align-items: center; gap: 8px;
+  font-size: 0.72rem; font-weight: 700; color: var(--text3);
+  letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
 }
 .p-card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-.avatar-row { display: flex; align-items: center; gap: 20px; margin-bottom: 8px; }
+.avatar-row { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
 .avatar-big {
   width: 64px; height: 64px; border-radius: 50%;
-  background: var(--cyan-dim); border: 2px solid rgba(0,217,245,0.3);
+  background: var(--gradient); flex-shrink: 0;
   display: grid; place-items: center;
-  font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; color: var(--cyan);
-  flex-shrink: 0;
+  font-family: var(--font-sans); font-size: 1.6rem; font-weight: 800; color: #fff;
 }
-.avatar-info { display: flex; flex-direction: column; gap: 6px; }
-.avatar-email { font-size: 1rem; font-weight: 700; }
-.avatar-roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.avatar-info { display: flex; flex-direction: column; gap: 5px; }
+.avatar-email { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.avatar-roles { display: flex; flex-wrap: wrap; gap: 5px; }
 .avatar-role {
-  font-family: var(--font-mono); font-size: 0.62rem;
-  padding: 2px 8px; border-radius: 4px;
-  background: var(--green-dim); border: 1px solid rgba(54,245,160,0.25);
-  color: var(--green); width: fit-content;
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 100px;
+  background: rgba(5,150,105,0.08); border: 1px solid rgba(5,150,105,0.25);
+  color: var(--green);
+}
+.avatar-role-default {
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 100px;
+  background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.2);
+  color: var(--primary);
 }
 
 .p-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .p-field:last-child { margin-bottom: 0; }
-.p-label { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
+.p-label { font-size: 0.75rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
 .p-value {
-  background: var(--surface); border: 1px solid var(--border);
+  background: var(--surface); border: 1.5px solid var(--border);
   border-radius: var(--radius); padding: 11px 14px;
-  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text2);
+  font-size: 0.88rem; color: var(--text2);
 }
 .p-input {
-  background: var(--surface); border: 1px solid var(--border2);
+  background: var(--bg); border: 1.5px solid var(--border2);
   border-radius: var(--radius); padding: 11px 14px;
-  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text);
-  outline: none; transition: border-color 0.15s; width: 100%;
+  font-family: var(--font-sans); font-size: 0.9rem; color: var(--text);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
 }
-.p-input:focus { border-color: var(--cyan); }
+.p-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,107,107,0.1); }
 
 .p-btn {
-  padding: 10px 20px; border-radius: var(--radius);
-  border: none; background: var(--cyan); color: var(--bg);
-  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
-  cursor: pointer; transition: background 0.15s; letter-spacing: 0.3px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 22px; border-radius: 100px;
+  border: none; background: var(--gradient); color: #fff;
+  font-family: var(--font-sans); font-size: 0.85rem; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s; margin-top: 4px;
 }
-.p-btn:hover { background: #33E4FF; }
+.p-btn:hover { opacity: 0.88; }
 
 .alert {
   border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px;
-  font-family: var(--font-mono); font-size: 0.68rem;
+  font-size: 0.82rem;
 }
-.alert-error   { background: var(--red-dim);   border: 1px solid rgba(245,54,92,0.3);  color: var(--red); }
-.alert-success { background: var(--green-dim); border: 1px solid rgba(54,245,160,0.3); color: var(--green); }
+.alert-error   { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); color: var(--red); }
+.alert-success { background: rgba(5,150,105,0.06); border: 1px solid rgba(5,150,105,0.2); color: var(--green); }
 
+.danger-zone { border-color: rgba(220,38,38,0.2); }
+.danger-zone .p-card-label { color: var(--red); }
+.danger-desc { font-size: 0.82rem; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
+.danger-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .danger-btn {
-  background: transparent; border: 1px solid rgba(245,54,92,0.3);
-  color: var(--red); padding: 10px 20px; border-radius: var(--radius);
-  font-family: var(--font-mono); font-size: 0.68rem; cursor: pointer;
-  transition: all 0.15s; letter-spacing: 0.5px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: 1.5px solid rgba(220,38,38,0.25);
+  color: var(--red); padding: 9px 18px; border-radius: 100px;
+  font-family: var(--font-sans); font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; text-decoration: none;
 }
-.danger-btn:hover { background: var(--red-dim); border-color: var(--red); }
+.danger-btn:hover { background: rgba(220,38,38,0.06); border-color: var(--red); }
+.logout-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: 1.5px solid var(--border2);
+  color: var(--text2); padding: 9px 18px; border-radius: 100px;
+  font-family: var(--font-sans); font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; text-decoration: none;
+}
+.logout-btn:hover { border-color: var(--text); color: var(--text); }
 
-/* Modal confirmation */
+/* Modal */
 .modal-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7); z-index: 999;
-  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.35); backdrop-filter: blur(4px);
+  z-index: 999; align-items: center; justify-content: center;
 }
 .modal-overlay.open { display: flex; }
 .modal-box {
-  background: var(--card); border: 1px solid var(--border2);
-  border-radius: var(--radius-xl); padding: 32px; max-width: 420px; width: 90%;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl); padding: 36px;
+  max-width: 420px; width: 90%; box-shadow: var(--shadow-lg);
 }
-.modal-title { font-size: 1rem; font-weight: 800; margin-bottom: 8px; }
-.modal-desc { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+.modal-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -0.3px; }
+.modal-desc { font-size: 0.84rem; color: var(--text2); margin-bottom: 28px; line-height: 1.6; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .modal-cancel {
-  padding: 9px 18px; border-radius: var(--radius);
-  border: 1px solid var(--border2); background: transparent;
-  color: var(--text2); font-family: var(--font-mono); font-size: 0.7rem;
+  padding: 9px 18px; border-radius: 100px;
+  border: 1.5px solid var(--border2); background: transparent;
+  color: var(--text2); font-family: var(--font-sans); font-size: 0.82rem; font-weight: 600;
   cursor: pointer; transition: all 0.15s;
 }
-.modal-cancel:hover { border-color: var(--text2); color: var(--text); }
+.modal-cancel:hover { border-color: var(--text); color: var(--text); }
 
-@media (max-width: 768px) {
-  .profile-wrap { padding: 24px 20px; }
-}
+@media (max-width: 768px) { .profile-wrap { padding: 24px 20px; } }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="profile-wrap">
+
   <div class="page-header">
     <div class="page-title">Mon profil</div>
+    <div class="page-sub">Gérez vos informations et paramètres de compte</div>
   </div>
 
   <div class="profile-grid">
 
-    {# Informations du compte #}
     <div class="p-card">
       <div class="p-card-label">Informations du compte</div>
       <div class="avatar-row">
@@ -117,6 +142,7 @@
         <div class="avatar-info">
           <div class="avatar-email">{{ app.user.email }}</div>
           <div class="avatar-roles">
+            <span class="avatar-role-default">Utilisateur</span>
             {% for role in app.user.roles %}
               {% if role != 'ROLE_USER' %}
                 <span class="avatar-role">{{ role }}</span>
@@ -131,7 +157,6 @@
       </div>
     </div>
 
-    {# Changer le mot de passe #}
     <div class="p-card">
       <div class="p-card-label">Changer le mot de passe</div>
 
@@ -155,18 +180,17 @@
           <label class="p-label" for="confirm_password">Confirmer le nouveau mot de passe</label>
           <input class="p-input" type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" required>
         </div>
-        <button class="p-btn" type="submit">Mettre à jour le mot de passe</button>
+        <button class="p-btn" type="submit">Mettre à jour →</button>
       </form>
     </div>
 
-    {# Zone danger #}
-    <div class="p-card">
-      <div class="p-card-label">Zone danger</div>
-      <p style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+    <div class="p-card danger-zone">
+      <div class="p-card-label">Mon compte</div>
+      <p class="danger-desc">
         La suppression de votre compte est irréversible. Toutes vos données seront définitivement effacées.
       </p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a class="danger-btn" href="{{ path('app_logout') }}" style="text-decoration:none;display:inline-block;">Se déconnecter</a>
+      <div class="danger-actions">
+        <a class="logout-btn" href="{{ path('app_logout') }}">Se déconnecter</a>
         <button class="danger-btn" type="button" onclick="document.getElementById('modal-delete').classList.add('open')">
           Supprimer mon compte
         </button>
@@ -176,12 +200,11 @@
   </div>
 </div>
 
-{# Modal confirmation suppression #}
 <div class="modal-overlay" id="modal-delete">
   <div class="modal-box">
     <div class="modal-title">Supprimer le compte ?</div>
     <div class="modal-desc">
-      Cette action est <strong style="color:var(--red)">irréversible</strong>.<br>
+      Cette action est <strong style="color:var(--red)">irréversible</strong>.
       Votre compte et toutes vos données associées seront définitivement supprimés.
     </div>
     <div class="modal-actions">
