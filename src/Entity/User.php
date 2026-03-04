@@ -3,6 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -14,9 +18,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['user:read'])]
     private ?string $email = null;
 
     /**
@@ -27,6 +33,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\OneToMany(targetEntity: ScanJob::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $scanJobs;
+
+    public function __construct()
+    {
+        $this->scanJobs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

@@ -3,33 +3,63 @@
 namespace App\Entity;
 
 use App\Repository\ScanJobRepository;
+use App\State\ScanJobCollectionProvider;
+use App\State\ScanJobProcessor;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ApiResource()]
+#[ApiResource(
+    operations: [
+        // Tout le monde (connecté ou non) peut soumettre un scan
+        new Post(
+            processor: ScanJobProcessor::class,
+        ),
+        // Seul le propriétaire du job peut consulter son résultat (dashboard)
+        new Get(
+            security: "is_granted('ROLE_USER') and object.getUser() === user",
+        ),
+        // Seuls les utilisateurs authentifiés voient leur historique
+        new GetCollection(
+            security: "is_granted('ROLE_USER')",
+            provider: ScanJobCollectionProvider::class,
+        ),
+    ],
+    normalizationContext: ['groups' => ['scan_job:read']],
+    denormalizationContext: ['groups' => ['scan_job:write']],
+)]
 #[ORM\Entity(repositoryClass: ScanJobRepository::class)]
 class ScanJob
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['scan_job:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 200)]
+    #[Groups(['scan_job:read', 'scan_job:write'])]
     private ?string $repoUrl = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['scan_job:read'])]
     private ?string $status = null;
 
     #[ORM\Column]
+    #[Groups(['scan_job:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['scan_job:read'])]
     private ?\DateTimeImmutable $finishedAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['scan_job:read'])]
     private ?int $globalScore = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -37,6 +67,7 @@ class ScanJob
     private ?User $user = null;
 
     #[ORM\OneToMany(targetEntity: Vulnerability::class, mappedBy: 'scanJob', cascade: ['persist', 'remove'])]
+    #[Groups(['scan_job:read'])]
     private Collection $vulnerabilities;
 
     public function __construct()

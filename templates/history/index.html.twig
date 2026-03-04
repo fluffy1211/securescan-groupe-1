@@ -78,7 +78,9 @@
 
   <div class="page-header">
     <div class="page-title">Historique des scans</div>
-    <div class="page-sub">{{ app.user.email }}</div>
+    <div class="page-sub">
+      {{ app.user.email }} · {{ scanJobs|length }} scan{{ scanJobs|length != 1 ? 's' : '' }} effectué{{ scanJobs|length != 1 ? 's' : '' }}
+    </div>
   </div>
 
   {% if scans is empty %}
@@ -123,12 +125,10 @@
             <span class="scan-score-num {{ scoreClass }}">{{ score }}</span>
             <span class="scan-score-lbl">Score</span>
           </div>
-          <span class="scan-arrow">›</span>
-        </div>
-      </a>
+        </a>
       {% endfor %}
-    </div>
-  {% endif %}
+    {% endif %}
+  </div>
 
 </div>
 {% endblock %}
