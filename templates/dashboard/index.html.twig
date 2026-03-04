@@ -255,9 +255,9 @@ tbody tr:hover .td-arrow { color: var(--primary); }
       </div>
     </div>
     <div class="stats-strip">
-      <div class="s-stat crit"><span class="s-num">{{ countError }}</span><span class="s-lbl">Error</span></div>
-      <div class="s-stat high"><span class="s-num">{{ countWarning }}</span><span class="s-lbl">Warning</span></div>
-      <div class="s-stat low"><span class="s-num">{{ countInfo }}</span><span class="s-lbl">Info</span></div>
+      <div class="s-stat crit"><span class="s-num">{{ countError }}</span><span class="s-lbl">Critique</span></div>
+      <div class="s-stat high"><span class="s-num">{{ countWarning }}</span><span class="s-lbl">Modéré</span></div>
+      <div class="s-stat low"><span class="s-num">{{ countInfo }}</span><span class="s-lbl">Information</span></div>
       <div class="s-stat med"><span class="s-num">{{ vulns|length }}</span><span class="s-lbl">Total</span></div>
     </div>
   </div>
@@ -274,7 +274,7 @@ tbody tr:hover .td-arrow { color: var(--primary); }
     <div class="o-card a05">
       <div class="o-top"><span class="o-code">{{ cat }}</span><span class="o-count">{{ count }}</span></div>
       <div class="o-name">{{ cat }}</div>
-      <div class="o-badges"><span class="sev-badge sev-c">{{ count }} finding{{ count > 1 ? 's' : '' }}</span></div>
+      <div class="o-badges"><span class="sev-badge sev-c">{{ count }} occurrence{{ count > 1 ? 's' : '' }}</span></div>
     </div>
     {% endfor %}
   </div>
@@ -313,9 +313,9 @@ tbody tr:hover .td-arrow { color: var(--primary); }
             {% endif %}
           </td>
           <td>
-            {% if vuln.severity == 'error' %}<span class="sev-badge sev-c">Error</span>
-            {% elseif vuln.severity == 'warning' %}<span class="sev-badge sev-h">Warning</span>
-            {% else %}<span class="sev-badge sev-l">Info</span>{% endif %}
+            {% if vuln.severity == 'error' %}<span class="sev-badge sev-c">Critique</span>
+            {% elseif vuln.severity == 'warning' %}<span class="sev-badge sev-h">Modéré</span>
+            {% else %}<span class="sev-badge sev-l">Information</span>{% endif %}
           </td>
           <td>
             {% if vuln.owaspCategory %}
