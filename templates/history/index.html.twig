@@ -78,52 +78,69 @@
 
   <div class="page-header">
     <div class="page-title">Historique des scans</div>
-    <div class="page-sub">{{ app.user.email }}</div>
+    <div class="page-sub">
+      {{ app.user.email }} · {{ scanJobs|length }} scan{{ scanJobs|length != 1 ? 's' : '' }} effectué{{ scanJobs|length != 1 ? 's' : '' }}
+    </div>
   </div>
 
-  {% set scans = [
-    { repo: 'github.com/juice-shop/juice-shop',          date: '2 mars 2026 · 16h42',  score: 42, scoreClass: 'score-bad',  critical: 3, high: 6, medium: 4, low: 2 },
-    { repo: 'github.com/OWASP/WebGoat',                  date: '1 mars 2026 · 11h15',  score: 58, scoreClass: 'score-med',  critical: 1, high: 4, medium: 3, low: 5 },
-    { repo: 'github.com/fluffy1211/securescan-groupe-1', date: '28 fév. 2026 · 09h03', score: 81, scoreClass: 'score-good', critical: 0, high: 1, medium: 2, low: 3 },
-  ] %}
-
-  {% if scans is empty %}
-    <div class="empty-state">
-      <div class="empty-icon">🔍</div>
-      <div class="empty-title">Aucun scan pour l'instant</div>
-      <div class="empty-sub">Lancez votre premier scan depuis la page d'accueil</div>
-      <a class="empty-btn" href="{{ path('app_home') }}">Analyser un projet →</a>
-    </div>
-  {% else %}
-    <div class="history-grid">
-      {% for s in scans %}
-      <a class="scan-card" href="{{ path('app_dashboard') }}">
-        <div class="scan-left">
-          <div class="scan-repo">
-            <div class="scan-repo-icon">◈</div>
-            {{ s.repo }}
-          </div>
-          <div class="scan-meta">
-            <span>📅 {{ s.date }}</span>
-            <div class="scan-badges">
-              {% if s.critical %}<span class="sev-badge sev-c">{{ s.critical }} Critical</span>{% endif %}
-              {% if s.high     %}<span class="sev-badge sev-h">{{ s.high }} High</span>{% endif %}
-              {% if s.medium   %}<span class="sev-badge sev-m">{{ s.medium }} Medium</span>{% endif %}
-              {% if s.low      %}<span class="sev-badge sev-l">{{ s.low }} Low</span>{% endif %}
+  <div class="history-grid">
+    {% if scanJobs is empty %}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Aucun scan effectué pour le moment</div>
+        <div class="empty-sub">Lancez votre premier scan depuis le tableau de bord</div>
+      </div>
+    {% else %}
+      {% for job in scanJobs %}
+        {% set score = job.globalScore %}
+        {% set scoreClass = score >= 75 ? 'score-good' : (score >= 50 ? 'score-med' : 'score-bad') %}
+        {% set errorCount   = 0 %}
+        {% set warningCount = 0 %}
+        {% set infoCount    = 0 %}
+        {% for vuln in job.vulnerabilities %}
+          {% if vuln.severity == 'error' %}
+            {% set errorCount = errorCount + 1 %}
+          {% elseif vuln.severity == 'warning' %}
+            {% set warningCount = warningCount + 1 %}
+          {% else %}
+            {% set infoCount = infoCount + 1 %}
+          {% endif %}
+        {% endfor %}
+        <a class="scan-card" href="{{ path('app_vuln_detail', {id: job.id}) }}">
+          <div class="scan-left">
+            <div class="scan-repo">
+              <span class="scan-repo-icon">◈</span>
+              {{ job.repoUrl }}
+            </div>
+            <div class="scan-meta">
+              <span class="scan-date">📅 {{ job.createdAt|date('d M Y · H\hi') }}</span>
+              <div class="scan-badges">
+                {% if errorCount > 0 %}
+                  <span class="sev-badge sev-c">{{ errorCount }} Error</span>
+                {% endif %}
+                {% if warningCount > 0 %}
+                  <span class="sev-badge sev-h">{{ warningCount }} Warning</span>
+                {% endif %}
+                {% if infoCount > 0 %}
+                  <span class="sev-badge sev-l">{{ infoCount }} Info</span>
+                {% endif %}
+                {% if job.status != 'done' %}
+                  <span class="sev-badge">{{ job.status }}</span>
+                {% endif %}
+              </div>
             </div>
           </div>
-        </div>
-        <div class="scan-right">
-          <div class="scan-score">
-            <span class="scan-score-num {{ s.scoreClass }}">{{ s.score }}</span>
-            <span class="scan-score-lbl">Score</span>
+          <div class="scan-right">
+            <div class="scan-score">
+              <span class="scan-score-num {{ scoreClass }}">{{ score ?? '—' }}</span>
+              <span class="scan-score-lbl">Score</span>
+            </div>
+            <span class="scan-arrow">›</span>
           </div>
-          <span class="scan-arrow">›</span>
-        </div>
-      </a>
+        </a>
       {% endfor %}
-    </div>
-  {% endif %}
+    {% endif %}
+  </div>
 
 </div>
 {% endblock %}
