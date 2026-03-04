@@ -8,7 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class AuthController extends AbstractController
@@ -56,12 +56,9 @@ class AuthController extends AbstractController
                 $user->setEmail($email);
                 $user->setPassword($hasher->hashPassword($user, $password));
 
-                $em = $userRepository->getEntityManager() instanceof \Doctrine\ORM\EntityManagerInterface
-                    ? $userRepository->getEntityManager()
-                    : null;
-
-                $userRepository->getEntityManager()->persist($user);
-                $userRepository->getEntityManager()->flush();
+                $em = $userRepository->getEntityManager();
+                $em->persist($user);
+                $em->flush();
 
                 $this->addFlash('success', 'Compte créé ! Connectez-vous.');
                 return $this->redirectToRoute('app_login');

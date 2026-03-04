@@ -115,9 +115,7 @@ abstract class AbstractPackageAuditService implements ScannerInterface
         if (!file_exists($path . '/' . $this->getManifestFile())) {
             throw new \RuntimeException($this->getManifestFile() . ' introuvable');
         }
-        if (!file_exists($path . '/' . $this->getLockFile())) {
-            throw new \RuntimeException($this->getLockFile() . ' manquant');
-        }
+        $this->ensureLockFile($path);
         if (!$this->isToolAvailable()) {
             throw new \RuntimeException($this->getToolName() . ' non disponible');
         }
@@ -142,6 +140,18 @@ abstract class AbstractPackageAuditService implements ScannerInterface
 
         // --- Normalisation spécifique à chaque outil (Composer / npm) ---
         return $this->normalize($data);
+    }
+
+    /**
+     * Ensures the lock file exists. Override in child classes to generate it if needed.
+     *
+     * @throws \RuntimeException If lock file is missing and cannot be created
+     */
+    protected function ensureLockFile(string $path): void
+    {
+        if (!file_exists($path . '/' . $this->getLockFile())) {
+            throw new \RuntimeException($this->getLockFile() . ' manquant');
+        }
     }
 
     /**

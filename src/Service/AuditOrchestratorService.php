@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\ScanJob;
+use App\Enum\ScanStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\Process\Process;
@@ -49,7 +50,7 @@ class AuditOrchestratorService
 
         try {
             // Étape 1 : marquer le job comme en cours
-            $job->setStatus('running');
+            $job->setStatus(ScanStatus::RUNNING);
             $this->em->flush();
 
             // Étape 2 : clone superficiel du dépôt (--depth 1)
@@ -63,11 +64,11 @@ class AuditOrchestratorService
 
             // Étape 4 : calculer le score global (100 - pénalités)
             $job->setGlobalScore($this->computeScore($job));
-            $job->setStatus('done');
+            $job->setStatus(ScanStatus::DONE);
             $job->setFinishedAt(new \DateTimeImmutable());
         } catch (\Throwable $e) {
             // En cas d'erreur, on marque le job comme échoué
-            $job->setStatus('failed');
+            $job->setStatus(ScanStatus::FAILED);
             $job->setFinishedAt(new \DateTimeImmutable());
             throw $e;
         } finally {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ScanJob;
+use App\Enum\ScanStatus;
 use App\Service\AuditOrchestratorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +27,7 @@ class ScanController extends AbstractController
 
         $job = new ScanJob();
         $job->setRepoUrl($repoUrl);
-        $job->setStatus('pending');
+        $job->setStatus(ScanStatus::PENDING);
 
         if ($this->getUser()) {
             $job->setUser($this->getUser());
@@ -41,7 +42,7 @@ class ScanController extends AbstractController
     #[Route('/scan/{id}/loading', name: 'app_scan_loading')]
     public function loading(ScanJob $job): Response
     {
-        if ($job->getStatus() === 'done') {
+        if ($job->getStatus() === ScanStatus::DONE) {
             return $this->redirectToRoute('app_dashboard', ['id' => $job->getId()]);
         }
 
@@ -51,7 +52,7 @@ class ScanController extends AbstractController
     #[Route('/scan/{id}/run', name: 'app_scan_run', methods: ['POST'])]
     public function run(ScanJob $job, AuditOrchestratorService $orchestrator): JsonResponse
     {
-        if ($job->getStatus() === 'done') {
+        if ($job->getStatus() === ScanStatus::DONE) {
             return $this->json([
                 'status'      => 'done',
                 'redirectUrl' => $this->generateUrl('app_dashboard', ['id' => $job->getId()]),
