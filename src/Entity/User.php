@@ -3,10 +3,13 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\ScanJob;
 
 #[ApiResource()]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -26,6 +29,14 @@ class User implements PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\OneToMany(targetEntity: ScanJob::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $scanJobs;
+
+    public function __construct()
+    {
+        $this->scanJobs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -67,6 +78,33 @@ class User implements PasswordAuthenticatedUserInterface
     {
         $this->password = $password;
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScanJob>
+     */
+    public function getScanJobs(): Collection
+    {
+        return $this->scanJobs;
+    }
+
+    public function addScanJob(ScanJob $scanJob): static
+    {
+        if (!$this->scanJobs->contains($scanJob)) {
+            $this->scanJobs->add($scanJob);
+            $scanJob->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeScanJob(ScanJob $scanJob): static
+    {
+        if ($this->scanJobs->removeElement($scanJob)) {
+            if ($scanJob->getUser() === $this) {
+                $scanJob->setUser(null);
+            }
+        }
         return $this;
     }
 
