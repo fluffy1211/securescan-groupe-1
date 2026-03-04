@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\User;
 
 #[ApiResource()]
 #[ORM\Entity(repositoryClass: ScanJobRepository::class)]
@@ -31,6 +32,10 @@ class ScanJob
 
     #[ORM\Column(nullable: true)]
     private ?int $globalScore = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'scanJobs')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $user = null;
 
     #[ORM\OneToMany(targetEntity: Vulnerability::class, mappedBy: 'scanJob', cascade: ['persist', 'remove'])]
     private Collection $vulnerabilities;
@@ -98,6 +103,17 @@ class ScanJob
     public function setGlobalScore(?int $globalScore): static
     {
         $this->globalScore = $globalScore;
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
         return $this;
     }
 
