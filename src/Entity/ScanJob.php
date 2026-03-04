@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\ScanStatus;
 use App\Repository\ScanJobRepository;
 use App\State\ScanJobCollectionProvider;
 use App\State\ScanJobProcessor;
@@ -46,9 +47,9 @@ class ScanJob
     #[Groups(['scan_job:read', 'scan_job:write'])]
     private ?string $repoUrl = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 20, enumType: ScanStatus::class)]
     #[Groups(['scan_job:read'])]
-    private ?string $status = null;
+    private ?ScanStatus $status = null;
 
     #[ORM\Column]
     #[Groups(['scan_job:read'])]
@@ -92,12 +93,12 @@ class ScanJob
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?ScanStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(ScanStatus $status): static
     {
         $this->status = $status;
         return $this;
