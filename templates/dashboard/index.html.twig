@@ -1,183 +1,169 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}SecureScan — Dashboard{% endblock %}
 
 {% block stylesheets %}
 <style>
-.dashboard { padding: 36px 40px; max-width: 1400px; margin: 0 auto; }
+.dashboard { padding: 36px 40px; max-width: 1300px; margin: 0 auto; }
 
-/* Header */
 .dash-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: flex-start; justify-content: space-between;
   margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
 }
-.dash-left { display: flex; flex-direction: column; gap: 4px; }
-.dash-title { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.4px; display: flex; align-items: center; gap: 10px; }
-.dash-title-badge {
-  font-family: var(--font-mono); font-size: 0.58rem; padding: 3px 8px;
-  background: var(--green-dim); border: 1px solid rgba(54,245,160,0.25);
-  color: var(--green); border-radius: var(--radius-sm); letter-spacing: 1px; text-transform: uppercase;
+.dash-left { display: flex; flex-direction: column; gap: 6px; }
+.dash-title {
+  font-size: 1.6rem; font-weight: 900; letter-spacing: -0.6px;
+  display: flex; align-items: center; gap: 10px;
 }
-.dash-repo { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text3); display: flex; align-items: center; gap: 6px; }
-.dash-repo-link { color: var(--cyan); text-decoration: none; }
+.dash-title-badge {
+  font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600;
+  padding: 3px 10px; background: rgba(5,150,105,0.1);
+  border: 1px solid rgba(5,150,105,0.25); color: var(--green);
+  border-radius: 100px;
+}
+.dash-repo { font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.dash-repo-link { color: var(--primary); text-decoration: none; font-weight: 500; }
 .dash-repo-link:hover { text-decoration: underline; }
 .dash-actions { display: flex; gap: 8px; align-items: center; }
 
-/* Export */
 .export-group {
   display: flex; align-items: center; gap: 2px;
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: var(--radius); padding: 3px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 3px; box-shadow: var(--shadow);
 }
 .exp-btn {
   display: flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 0.65rem;
-  padding: 7px 14px; border-radius: var(--radius-sm); border: none;
-  background: transparent; cursor: pointer; letter-spacing: 0.5px;
-  text-transform: uppercase; transition: all 0.15s; color: var(--text2);
+  font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500;
+  padding: 6px 14px; border-radius: var(--radius-sm); border: none;
+  background: transparent; cursor: pointer; transition: all 0.15s; color: var(--text2);
 }
-.exp-btn:hover { background: var(--card2); }
-.exp-btn.pdf:hover { color: var(--red); }
-.exp-btn.json:hover { color: var(--amber); }
+.exp-btn:hover { background: var(--surface); color: var(--text); }
 .exp-btn svg { width: 12px; height: 12px; }
 .btn-rescan {
   display: flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 0.65rem;
-  padding: 8px 16px; border-radius: var(--radius);
-  border: 1px solid var(--border2); background: transparent;
-  color: var(--text2); cursor: pointer; letter-spacing: 0.5px;
-  text-transform: uppercase; transition: all 0.15s;
+  font-family: var(--font-sans); font-size: 0.82rem; font-weight: 600;
+  padding: 8px 18px; border-radius: 100px;
+  border: 1.5px solid var(--border2); background: transparent;
+  color: var(--text2); cursor: pointer; transition: all 0.15s; text-decoration: none;
 }
-.btn-rescan:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-rescan:hover { border-color: var(--primary); color: var(--primary); }
 
-/* Score */
-.score-row { display: grid; grid-template-columns: 240px 1fr; gap: 16px; margin-bottom: 16px; }
+/* Score row */
+.score-row { display: grid; grid-template-columns: 220px 1fr; gap: 16px; margin-bottom: 16px; }
 .score-card {
-  background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-xl);
-  padding: 28px 24px; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 12px; position: relative;
-}
-.score-card::after {
-  content: ''; position: absolute; inset: 1px;
-  border-radius: calc(var(--radius-xl) - 1px);
-  background: radial-gradient(ellipse at top, rgba(245,166,35,0.05), transparent 60%);
-  pointer-events: none;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl); padding: 28px 20px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px;
+  box-shadow: var(--shadow);
 }
 .score-ring-wrap { position: relative; width: 100px; height: 100px; }
 .score-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.score-track { fill: none; stroke: var(--border2); stroke-width: 6; }
-.score-fill  { fill: none; stroke: var(--amber); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 88; }
+.score-track { fill: none; stroke: var(--border); stroke-width: 6; }
+.score-fill  { fill: none; stroke: url(#scoreGrad); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 88; }
 .score-num {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; font-weight: 900; color: var(--amber); letter-spacing: -1px;
+  font-size: 1.8rem; font-weight: 900; letter-spacing: -2px;
+  background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
-.score-label { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; }
-.score-verdict { font-size: 0.8rem; font-weight: 700; color: var(--amber); display: flex; align-items: center; gap: 5px; }
+.score-label { font-size: 0.75rem; font-weight: 600; color: var(--text2); letter-spacing: 0.3px; }
+.score-verdict { font-size: 0.82rem; font-weight: 700; color: var(--amber); }
 
 /* Stats strip */
 .stats-strip {
-  background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-xl);
-  display: grid; grid-template-columns: repeat(4,1fr); overflow: hidden;
+  background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-xl);
+  display: grid; grid-template-columns: repeat(4,1fr); overflow: hidden; box-shadow: var(--shadow);
 }
 .s-stat {
-  padding: 24px 20px; border-right: 1px solid var(--border);
+  padding: 22px 20px; border-right: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 6px; position: relative;
 }
 .s-stat:last-child { border-right: none; }
-.s-stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 0 0 2px 2px; }
-.s-stat.crit::before { background: var(--red); }
-.s-stat.high::before { background: var(--amber); }
-.s-stat.med::before  { background: var(--orange); }
-.s-stat.low::before  { background: var(--green); }
-.s-num { font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -1px; }
+.s-stat::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 3px 3px; }
+.s-stat.crit::after { background: var(--red); }
+.s-stat.high::after { background: var(--amber); }
+.s-stat.med::after  { background: var(--orange); }
+.s-stat.low::after  { background: var(--green); }
+.s-num { font-size: 2.2rem; font-weight: 900; line-height: 1; letter-spacing: -2px; }
 .s-stat.crit .s-num { color: var(--red); }
 .s-stat.high .s-num { color: var(--amber); }
 .s-stat.med  .s-num { color: var(--orange); }
 .s-stat.low  .s-num { color: var(--green); }
-.s-lbl { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; }
+.s-lbl { font-size: 0.72rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
 
 /* OWASP */
 .owasp-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 16px; }
 .o-card {
-  background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-xl);
-  padding: 22px; cursor: pointer; transition: border-color 0.2s, transform 0.15s;
-  position: relative; overflow: hidden;
+  background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-xl);
+  padding: 20px 22px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative; overflow: hidden; box-shadow: var(--shadow);
 }
-.o-card:hover { transform: translateY(-1px); }
-.o-card.a05:hover { border-color: var(--red); }
-.o-card.a07:hover { border-color: var(--amber); }
-.o-card.a01:hover { border-color: var(--cyan); }
-.o-card::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
+.o-card:hover { box-shadow: var(--shadow-md); }
+.o-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
 .o-card.a05::before { background: var(--red); }
 .o-card.a07::before { background: var(--amber); }
-.o-card.a01::before { background: var(--cyan); }
-.o-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.o-card.a01::before { background: #7C3AED; }
+.o-card:hover { border-color: var(--primary); }
+.o-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
 .o-code {
-  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;
-  padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid;
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600;
+  padding: 3px 8px; border-radius: 100px; border: 1px solid;
 }
-.o-card.a05 .o-code { color: var(--red);   background: var(--red-dim);   border-color: rgba(245,54,92,0.3); }
-.o-card.a07 .o-code { color: var(--amber); background: var(--amber-dim); border-color: rgba(245,166,35,0.3); }
-.o-card.a01 .o-code { color: var(--cyan);  background: var(--cyan-dim);  border-color: rgba(0,217,245,0.3); }
-.o-count { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+.o-card.a05 .o-code { color: var(--red);   border-color: rgba(220,38,38,0.3);   background: rgba(220,38,38,0.06); }
+.o-card.a07 .o-code { color: var(--amber); border-color: rgba(217,119,6,0.3);   background: rgba(217,119,6,0.06); }
+.o-card.a01 .o-code { color: #7C3AED;     border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.06); }
+.o-count { font-size: 2.4rem; font-weight: 900; letter-spacing: -2px; line-height: 1; }
 .o-card.a05 .o-count { color: var(--red); }
 .o-card.a07 .o-count { color: var(--amber); }
-.o-card.a01 .o-count { color: var(--cyan); }
-.o-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+.o-card.a01 .o-count { color: #7C3AED; }
+.o-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; line-height: 1.3; color: var(--text); }
 .o-badges { display: flex; flex-wrap: wrap; gap: 5px; }
-.ob {
-  font-family: var(--font-mono); font-size: 0.58rem;
-  padding: 2px 7px; border-radius: 4px; border: 1px solid;
-  letter-spacing: 0.5px; text-transform: uppercase;
-}
-.ob-c { color: var(--red);    border-color: rgba(245,54,92,0.35);  background: rgba(245,54,92,0.07); }
-.ob-h { color: var(--amber);  border-color: rgba(245,166,35,0.35); background: rgba(245,166,35,0.07); }
-.ob-m { color: var(--orange); border-color: rgba(245,117,54,0.35); background: rgba(245,117,54,0.07); }
-.ob-l { color: var(--green);  border-color: rgba(54,245,160,0.35); background: rgba(54,245,160,0.07); }
 
 /* Table */
-.vtable-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-xl); overflow: hidden; }
+.vtable-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow);
+}
 .vtable-top {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 22px; border-bottom: 1px solid var(--border);
+  padding: 16px 22px; border-bottom: 1px solid var(--border);
+  background: var(--bg2);
 }
-.vtable-title { font-size: 0.88rem; font-weight: 700; }
+.vtable-title { font-size: 0.95rem; font-weight: 700; color: var(--text); }
 .vtable-meta { display: flex; align-items: center; gap: 12px; }
-.vtable-count { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3); }
+.vtable-count { font-size: 0.78rem; color: var(--text3); font-weight: 500; }
 .filter-tabs {
   display: flex; gap: 2px; background: var(--surface);
   border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px;
 }
 .ftab {
-  font-family: var(--font-mono); font-size: 0.6rem;
-  padding: 4px 10px; border-radius: 4px; color: var(--text3);
-  cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase;
-  transition: all 0.15s; border: none; background: none;
+  font-family: var(--font-sans); font-size: 0.75rem; font-weight: 500;
+  padding: 4px 12px; border-radius: var(--radius-sm); color: var(--text3);
+  cursor: pointer; transition: all 0.15s; border: none; background: none;
 }
-.ftab:hover { color: var(--text2); }
-.ftab.on { background: var(--card2); color: var(--cyan); }
+.ftab:hover { color: var(--text); }
+.ftab.on { background: var(--bg); color: var(--primary); font-weight: 700; box-shadow: var(--shadow); }
 table { width: 100%; border-collapse: collapse; }
-thead tr { background: rgba(255,255,255,0.015); border-bottom: 1px solid var(--border); }
+thead tr { background: var(--bg2); border-bottom: 1px solid var(--border); }
 th {
-  font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3);
-  text-transform: uppercase; letter-spacing: 2px; padding: 11px 20px;
-  text-align: left; font-weight: 400; white-space: nowrap;
+  font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1px; padding: 11px 20px;
+  text-align: left; white-space: nowrap;
 }
-tbody tr { border-bottom: 1px solid rgba(31,42,63,0.6); cursor: pointer; transition: background 0.1s; }
+tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(0,217,245,0.03); }
-td { padding: 13px 20px; font-family: var(--font-mono); font-size: 0.72rem; }
+tbody tr:hover { background: rgba(255,107,107,0.03); }
+td { padding: 14px 20px; font-size: 0.82rem; }
 .td-tool {
-  display: inline-flex; align-items: center; gap: 5px; font-size: 0.6rem;
-  padding: 2px 8px; border-radius: 4px;
-  background: var(--surface); border: 1px solid var(--border); color: var(--text3);
+  display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem;
+  padding: 3px 10px; border-radius: 100px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text2); font-weight: 500;
 }
-.td-pkg { color: var(--text); font-weight: 500; }
-.td-ver { color: var(--text3); font-size: 0.66rem; }
-.td-cve { color: var(--cyan); }
+.td-pkg { color: var(--text); font-weight: 600; }
+.td-ver { color: var(--text3); font-size: 0.72rem; font-weight: 400; }
+.td-cve { color: var(--primary); font-weight: 500; font-family: var(--font-mono); font-size: 0.72rem; }
 .td-cve:hover { text-decoration: underline; }
-.td-arrow { color: var(--text3); font-size: 0.7rem; }
-tbody tr:hover .td-arrow { color: var(--cyan); }
+.td-arrow { color: var(--text3); font-size: 1rem; }
+tbody tr:hover .td-arrow { color: var(--primary); }
 
 @media (max-width: 1024px) { .owasp-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 768px) {
@@ -196,12 +182,12 @@ tbody tr:hover .td-arrow { color: var(--cyan); }
     <div class="dash-left">
       <div class="dash-title">
         Rapport d'analyse
-        <span class="dash-title-badge">Terminé</span>
+        <span class="dash-title-badge">✓ Terminé</span>
       </div>
       <div class="dash-repo">
-        ◈ &nbsp;
+        <span>◈</span>
         <a class="dash-repo-link" href="#">github.com/juice-shop/juice-shop</a>
-        &nbsp;· Scanné il y a 2 min
+        <span>· Scanné il y a 2 min</span>
       </div>
     </div>
     <div class="dash-actions">
@@ -211,11 +197,11 @@ tbody tr:hover .td-arrow { color: var(--cyan); }
           PDF
         </button>
         <button class="exp-btn json">
-          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h4v1.5H3.5v9H6V14H2V2zm12 0v12h-4v-1.5h2.5v-9H10V2h4zM7.5 5l1 4 1-4h1.5l-1.75 6h-1.5L6 5h1.5z"/></svg>
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h4v1.5H3.5v9H6V14H2V2zm12 0v12h-4v-1.5h2.5v-9H10V2h4z"/></svg>
           JSON
         </button>
       </div>
-      <a href="{{ path('app_home') }}" class="btn-rescan">↻ &nbsp;Nouveau scan</a>
+      <a href="{{ path('app_home') }}" class="btn-rescan">↻ Nouveau scan</a>
     </div>
   </div>
 
@@ -223,6 +209,12 @@ tbody tr:hover .td-arrow { color: var(--cyan); }
     <div class="score-card">
       <div class="score-ring-wrap">
         <svg class="score-svg" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#FF6B6B"/>
+              <stop offset="100%" style="stop-color:#A78BFA"/>
+            </linearGradient>
+          </defs>
           <circle class="score-track" cx="50" cy="50" r="40"/>
           <circle class="score-fill"  cx="50" cy="50" r="40"/>
         </svg>
@@ -243,17 +235,17 @@ tbody tr:hover .td-arrow { color: var(--cyan); }
     <div class="o-card a05">
       <div class="o-top"><span class="o-code">A05:2025</span><span class="o-count">4</span></div>
       <div class="o-name">Injection</div>
-      <div class="o-badges"><span class="ob ob-c">2 Critical</span><span class="ob ob-h">2 High</span></div>
+      <div class="o-badges"><span class="sev-badge sev-c">2 Critical</span><span class="sev-badge sev-h">2 High</span></div>
     </div>
     <div class="o-card a07">
       <div class="o-top"><span class="o-code">A07:2025</span><span class="o-count">3</span></div>
       <div class="o-name">Authentication Failures</div>
-      <div class="o-badges"><span class="ob ob-h">1 High</span><span class="ob ob-m">2 Medium</span></div>
+      <div class="o-badges"><span class="sev-badge sev-h">1 High</span><span class="sev-badge sev-m">2 Medium</span></div>
     </div>
     <div class="o-card a01">
       <div class="o-top"><span class="o-code">A01:2025</span><span class="o-count">7</span></div>
       <div class="o-name">Broken Access Control</div>
-      <div class="o-badges"><span class="ob ob-h">2 High</span><span class="ob ob-m">1 Medium</span><span class="ob ob-l">4 Low</span></div>
+      <div class="o-badges"><span class="sev-badge sev-h">2 High</span><span class="sev-badge sev-m">1 Medium</span><span class="sev-badge sev-l">4 Low</span></div>
     </div>
   </div>
 
@@ -284,40 +276,40 @@ tbody tr:hover .td-arrow { color: var(--cyan); }
       <tbody>
         <tr onclick="window.location='{{ path('app_vuln_detail', {id: 1}) }}'">
           <td><span class="td-tool">composer</span></td>
-          <td><span class="td-pkg">symfony/http-kernel</span><br><span class="td-ver">v5.4.0</span></td>
-          <td><span class="td-cve">CVE-2024-50341</span></td>
+          <td><div class="td-pkg">symfony/http-kernel</div><div class="td-ver">v5.4.0</div></td>
+          <td><a class="td-cve">CVE-2024-50341</a></td>
           <td><span class="sev-badge sev-c">Critical</span></td>
           <td><span class="owasp-pill op-a05">A05 — Injection</span></td>
           <td class="td-arrow">›</td>
         </tr>
         <tr onclick="window.location='{{ path('app_vuln_detail', {id: 2}) }}'">
           <td><span class="td-tool">composer</span></td>
-          <td><span class="td-pkg">doctrine/orm</span><br><span class="td-ver">v2.14.1</span></td>
-          <td><span class="td-cve">CVE-2024-42352</span></td>
+          <td><div class="td-pkg">doctrine/orm</div><div class="td-ver">v2.14.1</div></td>
+          <td><a class="td-cve">CVE-2024-42352</a></td>
           <td><span class="sev-badge sev-h">High</span></td>
           <td><span class="owasp-pill op-a05">A05 — Injection</span></td>
           <td class="td-arrow">›</td>
         </tr>
         <tr onclick="window.location='{{ path('app_vuln_detail', {id: 3}) }}'">
           <td><span class="td-tool">semgrep</span></td>
-          <td><span class="td-pkg">src/Controller/UserController.php</span><br><span class="td-ver">ligne 42</span></td>
-          <td><span class="td-cve" style="color:var(--text3)">—</span></td>
+          <td><div class="td-pkg">src/Controller/UserController.php</div><div class="td-ver">ligne 42</div></td>
+          <td><span style="color:var(--text3)">—</span></td>
           <td><span class="sev-badge sev-h">High</span></td>
           <td><span class="owasp-pill op-a05">A05 — Injection</span></td>
           <td class="td-arrow">›</td>
         </tr>
         <tr onclick="window.location='{{ path('app_vuln_detail', {id: 4}) }}'">
           <td><span class="td-tool">npm</span></td>
-          <td><span class="td-pkg">lodash</span><br><span class="td-ver">&lt;4.17.21</span></td>
-          <td><span class="td-cve">CVE-2021-23337</span></td>
+          <td><div class="td-pkg">lodash</div><div class="td-ver">&lt;4.17.21</div></td>
+          <td><a class="td-cve">CVE-2021-23337</a></td>
           <td><span class="sev-badge sev-h">High</span></td>
           <td><span class="owasp-pill op-a07">A07 — Auth</span></td>
           <td class="td-arrow">›</td>
         </tr>
         <tr onclick="window.location='{{ path('app_vuln_detail', {id: 5}) }}'">
           <td><span class="td-tool">composer</span></td>
-          <td><span class="td-pkg">twig/twig</span><br><span class="td-ver">v3.7.1</span></td>
-          <td><span class="td-cve">CVE-2024-51754</span></td>
+          <td><div class="td-pkg">twig/twig</div><div class="td-ver">v3.7.1</div></td>
+          <td><a class="td-cve">CVE-2024-51754</a></td>
           <td><span class="sev-badge sev-m">Medium</span></td>
           <td><span class="owasp-pill op-a01">A01 — Access</span></td>
           <td class="td-arrow">›</td>

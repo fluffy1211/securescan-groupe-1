@@ -1,159 +1,167 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}SecureScan — Analysez la sécurité de votre code{% endblock %}
 
 {% block stylesheets %}
 <style>
 .home {
-  height: calc(100vh - 58px);
+  min-height: calc(100vh - 60px);
   width: 100%;
   position: relative;
+  display: flex; align-items: center; justify-content: center;
   overflow: hidden;
-  text-align: center;
+  background: #fff;
 }
-.home-noise {
-  position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  opacity: 0.4; pointer-events: none;
+.home-blob {
+  position: absolute; border-radius: 50%; filter: blur(80px);
+  pointer-events: none; opacity: 0.45;
 }
-.home-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(0,217,245,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,217,245,0.03) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 70% 70% at 50% 40%, black 30%, transparent 80%);
-}
-.home-orb {
-  position: absolute;
-  width: 700px; height: 500px;
-  background: radial-gradient(ellipse at center,
-    rgba(0,217,245,0.06) 0%, rgba(0,217,245,0.02) 40%, transparent 70%);
-  top: 50%; left: 50%;
-  transform: translate(-50%, -60%);
-  pointer-events: none;
-}
+.home-blob-1 { width: 500px; height: 500px; background: rgba(255,107,107,0.18); top: -100px; left: -100px; }
+.home-blob-2 { width: 600px; height: 600px; background: rgba(167,139,250,0.15); bottom: -150px; right: -100px; }
+.home-blob-3 { width: 300px; height: 300px; background: rgba(255,107,107,0.1); top: 40%; right: 20%; }
+
 .home-body {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative; z-index: 1;
   width: calc(100% - 80px);
-  max-width: 680px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  max-width: 720px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: 80px 0;
 }
-.home-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--cyan-dim);
-  border: 1px solid rgba(0,217,245,0.2);
-  border-radius: 100px;
-  padding: 5px 14px 5px 8px;
-  font-family: var(--font-mono); font-size: 0.65rem;
-  color: var(--cyan); letter-spacing: 1.5px; text-transform: uppercase;
-  margin-bottom: 28px;
+
+.home-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(255,107,107,0.08);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 100px; padding: 5px 14px 5px 8px;
+  font-family: var(--font-sans); font-size: 0.78rem; font-weight: 600;
+  color: var(--primary); margin-bottom: 28px;
 }
-.eyebrow-dot { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: blink 2s ease-in-out infinite; }
+.badge-dot { width: 7px; height: 7px; background: var(--primary); border-radius: 50%; animation: blink 2s ease-in-out infinite; }
+
 .home-h1 {
-  font-size: clamp(2.8rem, 5vw, 4.2rem); font-weight: 900;
-  line-height: 1.05; letter-spacing: -2px; margin-bottom: 18px; color: var(--text);
+  font-size: clamp(2.4rem, 5vw, 3.8rem); font-weight: 900;
+  line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 18px; color: var(--text);
 }
-.home-h1 .hl { color: var(--cyan); position: relative; display: inline-block; }
-.home-h1 .hl::after {
-  content: ''; position: absolute; bottom: 2px; left: 0; right: 0;
-  height: 2px; background: var(--cyan); opacity: 0.3; border-radius: 2px;
+.home-h1 .hl {
+  background: var(--gradient);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  text-decoration-color: rgba(255,107,107,0.3);
 }
-.home-sub { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text2); line-height: 1.8; margin-bottom: 44px; }
+
+.home-sub { font-size: 1rem; color: var(--text2); line-height: 1.7; margin-bottom: 40px; max-width: 520px; }
+
 .scan-form {
   display: flex; align-items: stretch;
-  max-width: 600px; margin: 0 auto 40px;
-  background: var(--surface);
-  border: 1px solid var(--border2);
+  width: 100%; max-width: 580px; margin: 0 auto 40px;
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-md);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .scan-form:focus-within {
-  border-color: var(--cyan);
-  box-shadow: 0 0 0 3px rgba(0,217,245,0.08), 0 0 20px rgba(0,217,245,0.05);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(255,107,107,0.1);
 }
 .scan-prefix {
   display: flex; align-items: center; padding: 0 14px;
   font-family: var(--font-mono); font-size: 0.7rem; color: var(--text3);
-  border-right: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
-  white-space: nowrap; gap: 6px;
+  border-right: 1.5px solid var(--border);
+  background: var(--surface); white-space: nowrap; gap: 6px;
 }
-.prefix-icon { color: var(--cyan); opacity: 0.7; font-size: 0.75rem; }
 .scan-input {
   flex: 1; background: transparent; border: none; outline: none;
-  font-family: var(--font-mono); font-size: 0.78rem; color: var(--text); padding: 16px 14px;
+  font-family: var(--font-mono); font-size: 0.8rem; color: var(--text); padding: 16px 14px;
 }
 .scan-input::placeholder { color: var(--text3); }
 .scan-submit {
   display: flex; align-items: center; gap: 8px;
-  background: var(--cyan); color: var(--bg); border: none;
+  background: var(--gradient); color: #fff; border: none;
   padding: 0 24px; font-family: var(--font-sans); font-weight: 700;
-  font-size: 0.82rem; cursor: pointer; white-space: nowrap;
-  transition: background 0.15s; letter-spacing: 0.2px;
+  font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+  transition: opacity 0.15s; letter-spacing: 0.2px;
 }
-.scan-submit:hover { background: #33E4FF; }
-.submit-arrow { font-size: 0.9rem; transition: transform 0.15s; }
-.scan-submit:hover .submit-arrow { transform: translateX(2px); }
-.home-tools { display: flex; align-items: center; justify-content: center; gap: 24px; }
-.tool-chip { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); letter-spacing: 0.5px; }
-.tool-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border2); }
-.tool-chip-dot.active { background: var(--green); box-shadow: 0 0 4px var(--green); }
-.tools-divider { width: 1px; height: 16px; background: var(--border); }
+.scan-submit:hover { opacity: 0.88; }
 
-@media (max-width: 768px) {
-  .home { padding: 40px 20px; }
+.home-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; width: 100%; max-width: 580px; margin-bottom: 48px; }
+.step-card {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px 16px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  box-shadow: var(--shadow); text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.step-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+.step-icon {
+  width: 34px; height: 34px; border-radius: var(--radius);
+  background: var(--gradient); display: grid; place-items: center;
+  font-size: 0.9rem;
+}
+.step-title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.step-desc  { font-size: 0.75rem; color: var(--text2); line-height: 1.5; }
+
+.home-counter { display: flex; align-items: baseline; gap: 10px; }
+.counter-num {
+  font-size: 2.4rem; font-weight: 900; letter-spacing: -2px;
+  background: var(--gradient);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.counter-label { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.counter-sub { font-size: 0.8rem; color: var(--text3); margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .home-body { padding: 60px 0; }
+  .home-steps { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
 {% block body %}
 <section class="home">
-  <div class="home-noise"></div>
-  <div class="home-grid"></div>
-  <div class="home-orb"></div>
+  <div class="home-blob home-blob-1"></div>
+  <div class="home-blob home-blob-2"></div>
+  <div class="home-blob home-blob-3"></div>
+
   <div class="home-body">
     <h1 class="home-h1">
       Analysez la sécurité<br>de votre code <span class="hl">en secondes</span>
     </h1>
+
     <p class="home-sub">
-      Collez l'URL de votre dépôt Git. SecureScan clone, analyse,<br>
-      mappe sur l'OWASP et génère un rapport complet.
+      Collez l'URL de votre dépôt Git. SecureScan clone, analyse avec Semgrep,
+      npm audit &amp; Composer, mappe sur l'OWASP et génère un rapport complet.
     </p>
+
     <form class="scan-form" action="{{ path('app_dashboard') }}" method="GET">
       <div class="scan-prefix">
-        <span class="prefix-icon">⌥</span>
+        <span style="color:var(--primary)">❯</span>
         git clone
       </div>
       <input class="scan-input" type="text" name="repo"
         placeholder="https://github.com/organisation/projet.git" />
       <button class="scan-submit" type="submit">
-        Analyser <span class="submit-arrow">→</span>
+        Analyser →
       </button>
     </form>
-    <div class="home-tools">
-      <div class="tool-chip">
-        <span class="tool-chip-dot active"></span>
-        Semgrep
+
+    <div class="home-steps">
+      <div class="step-card">
+        <div class="step-icon">📥</div>
+        <div class="step-title">Clone</div>
+        <div class="step-desc">Clone le dépôt Git et prépare les fichiers pour l'analyse.</div>
       </div>
-      <div class="tools-divider"></div>
-      <div class="tool-chip">
-        <span class="tool-chip-dot active"></span>
-        Composer Audit
+      <div class="step-card">
+        <div class="step-icon">🔍</div>
+        <div class="step-title">Analyse</div>
+        <div class="step-desc">Semgrep · npm audit · Composer Audit détectent les failles.</div>
       </div>
-      <div class="tools-divider"></div>
-      <div class="tool-chip">
-        <span class="tool-chip-dot active"></span>
-        npm audit
+      <div class="step-card">
+        <div class="step-icon">📊</div>
+        <div class="step-title">Rapport</div>
+        <div class="step-desc">Score OWASP · Détails · Export des résultats.</div>
       </div>
     </div>
+
   </div>
 </section>
 {% endblock %}
@@ -163,7 +171,7 @@
 document.querySelector('.scan-form')?.addEventListener('submit', function () {
   const repo = document.querySelector('.scan-input')?.value?.trim();
   if (repo) {
-    localStorage.setItem('ss_last_scan', JSON.stringify({ repo: repo, date: new Date().toISOString() }));
+    localStorage.setItem('ss_last_scan', JSON.stringify({ repo, date: new Date().toISOString() }));
   }
 });
 </script>

@@ -1,83 +1,98 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}SecureScan — {{ vuln.package }} · {{ vuln.cve }}{% endblock %}
 
 {% block stylesheets %}
 <style>
-.detail-wrap { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+.detail-wrap { padding: 32px 40px; max-width: 1200px; margin: 0 auto; }
 .breadcrumb {
   display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3); margin-bottom: 28px;
+  font-size: 0.8rem; color: var(--text3); margin-bottom: 28px;
 }
-.bc-link { color: var(--cyan); text-decoration: none; }
+.bc-link { color: var(--primary); text-decoration: none; font-weight: 500; }
 .bc-link:hover { text-decoration: underline; }
 .bc-sep { color: var(--border2); }
-.detail-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
-.detail-left { display: flex; flex-direction: column; gap: 14px; }
-.d-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius-xl); padding: 26px; }
+
+.detail-grid { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+.detail-left  { display: flex; flex-direction: column; gap: 14px; }
+
+.d-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl); padding: 26px;
+  box-shadow: var(--shadow);
+}
 .d-card-label {
-  font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3);
-  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
-  display: flex; align-items: center; gap: 8px;
+  font-size: 0.72rem; font-weight: 700; color: var(--text3);
+  letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
 }
 .d-card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-.detail-pkg-name { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.3px; line-height: 1.2; }
-.detail-ver { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text3); font-weight: 400; margin-top: 4px; }
-.cve-badge {
-  font-family: var(--font-mono); font-size: 0.68rem; padding: 6px 12px;
-  border: 1px solid rgba(0,217,245,0.3); background: var(--cyan-dim);
-  color: var(--cyan); border-radius: var(--radius); white-space: nowrap; flex-shrink: 0;
-}
-.detail-desc { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text2); line-height: 1.8; padding-top: 18px; border-top: 1px solid var(--border); }
 
-/* Fix command */
+.detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.detail-pkg-name { font-size: 1.3rem; font-weight: 900; letter-spacing: -0.3px; color: var(--text); }
+.detail-ver { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text3); margin-top: 4px; }
+.cve-badge {
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+  padding: 6px 14px; border-radius: 100px;
+  border: 1.5px solid rgba(255,107,107,0.25); background: rgba(255,107,107,0.08);
+  color: var(--primary); white-space: nowrap; flex-shrink: 0;
+}
+.detail-desc {
+  font-size: 0.88rem; color: var(--text2); line-height: 1.8;
+  padding-top: 18px; border-top: 1px solid var(--border);
+}
+
 .fix-block {
-  background: var(--surface); border: 1px solid var(--border2);
+  background: rgba(5,150,105,0.05); border: 1.5px solid rgba(5,150,105,0.2);
   border-radius: var(--radius); padding: 14px 16px;
-  font-family: var(--font-mono); font-size: 0.75rem; color: var(--green);
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--green);
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   margin-top: 18px;
 }
-.fix-label { font-size: 0.6rem; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.fix-label { font-size: 0.65rem; color: var(--text3); font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
 .fix-copy {
-  background: transparent; border: 1px solid var(--border2); color: var(--text2);
-  padding: 5px 10px; border-radius: var(--radius-sm); cursor: pointer;
-  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.5px;
+  background: transparent; border: 1.5px solid rgba(5,150,105,0.25); color: var(--green);
+  padding: 5px 12px; border-radius: 100px; cursor: pointer;
+  font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600;
   transition: all 0.15s; white-space: nowrap;
 }
-.fix-copy:hover { border-color: var(--green); color: var(--green); }
+.fix-copy:hover { background: rgba(5,150,105,0.08); }
 
 /* Sidebar */
 .detail-right { display: flex; flex-direction: column; gap: 14px; }
 .owasp-sidebar-badge {
   display: flex; align-items: center; gap: 10px;
-  background: var(--red-dim); border: 1px solid rgba(245,54,92,0.25);
-  border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px;
+  background: rgba(220,38,38,0.05); border: 1.5px solid rgba(220,38,38,0.15);
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px;
 }
-.osb-code { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; color: var(--red); }
-.osb-name { font-size: 0.82rem; font-weight: 600; }
-.osb-desc { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text3); line-height: 1.6; }
+.osb-code { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--red); }
+.osb-name { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.osb-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+
 .sev-row { display: flex; flex-direction: column; gap: 8px; }
 .sev-row-top { display: flex; align-items: center; justify-content: space-between; }
-.sev-row-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
-.sev-row-score { font-family: var(--font-mono); font-size: 0.7rem; color: var(--red); font-weight: 700; }
-.sev-bar { height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
-.sev-bar-fill { height: 100%; border-radius: 2px; background: var(--red); width: 85%; }
+.sev-row-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.sev-row-score { font-family: var(--font-mono); font-size: 0.78rem; color: var(--red); font-weight: 700; }
+.sev-bar { height: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+.sev-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #FF6B6B, #A78BFA); width: 85%; }
+
 .action-stack { display: flex; flex-direction: column; gap: 8px; }
 .act-btn {
   width: 100%; padding: 12px; font-family: var(--font-sans); font-weight: 700;
-  font-size: 0.8rem; border-radius: var(--radius); cursor: pointer;
-  transition: all 0.15s; letter-spacing: 0.2px;
+  font-size: 0.82rem; border-radius: 100px; cursor: pointer;
+  transition: all 0.15s;
   display: flex; align-items: center; justify-content: center; gap: 8px;
+  text-decoration: none;
 }
-.act-primary { background: var(--cyan); color: var(--bg); border: none; }
-.act-primary:hover { background: #33E4FF; }
-.act-secondary { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
-.act-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+.act-primary { background: var(--gradient); color: #fff; border: none; }
+.act-primary:hover { opacity: 0.88; }
+.act-secondary {
+  background: transparent; color: var(--text2);
+  border: 1.5px solid var(--border2);
+}
+.act-secondary:hover { border-color: var(--primary); color: var(--primary); }
 
 @media (max-width: 1024px) { .detail-grid { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .detail-wrap { padding: 24px 20px; } }
+@media (max-width: 768px)  { .detail-wrap { padding: 24px 20px; } }
 </style>
 {% endblock %}
 
@@ -89,7 +104,7 @@
     <span class="bc-sep">›</span>
     <span>{{ vuln.package }}</span>
     <span class="bc-sep">›</span>
-    <span style="color:var(--cyan)">{{ vuln.cve }}</span>
+    <span style="color:var(--primary)">{{ vuln.cve }}</span>
   </div>
 
   <div class="detail-grid">
@@ -107,7 +122,7 @@
         </div>
         <div class="detail-desc">{{ vuln.title }}</div>
         {% if vuln.fix %}
-          <div style="margin-top: 18px;">
+          <div style="margin-top:18px;">
             <div class="fix-label">Commande de correction</div>
             <div class="fix-block">
               <code>{{ vuln.fix }}</code>
@@ -147,11 +162,11 @@
         <div class="d-card-label">Actions</div>
         <div class="action-stack">
           {% if vuln.url %}
-            <a href="{{ vuln.url }}" target="_blank" class="act-btn act-primary" style="text-decoration:none">
+            <a href="{{ vuln.url }}" target="_blank" class="act-btn act-primary">
               ↗ Voir l'advisory
             </a>
           {% endif %}
-          <a href="{{ path('app_dashboard') }}" class="act-btn act-secondary" style="text-decoration:none">
+          <a href="{{ path('app_dashboard') }}" class="act-btn act-secondary">
             ← Retour au dashboard
           </a>
         </div>
