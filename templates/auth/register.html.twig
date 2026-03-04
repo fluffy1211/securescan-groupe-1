@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+{% block title %}SecureScan — Créer un compte{% endblock %}
+
+{% block stylesheets %}
+<style>
+.auth-wrap {
+  height: calc(100vh - 58px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+}
+.auth-card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius-xl); padding: 40px 36px;
+  width: 100%; max-width: 400px;
+}
+.auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 4px; }
+.auth-sub { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3); }
+
+.auth-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.auth-label { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+.auth-input {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 11px 14px;
+  font-family: var(--font-mono); font-size: 0.8rem; color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+.auth-input:focus { border-color: var(--cyan); }
+.auth-hint { font-family: var(--font-mono); font-size: 0.58rem; color: var(--text3); }
+
+.auth-btn {
+  width: 100%; padding: 12px; margin-top: 8px;
+  background: var(--cyan); color: var(--bg);
+  border: none; border-radius: var(--radius);
+  font-family: var(--font-sans); font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; transition: background 0.15s;
+}
+.auth-btn:hover { background: #33E4FF; }
+
+.auth-error {
+  background: var(--red-dim); border: 1px solid rgba(245,54,92,0.3);
+  border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px;
+  font-family: var(--font-mono); font-size: 0.68rem; color: var(--red);
+}
+.auth-link {
+  display: block; text-align: center; margin-top: 20px;
+  font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3);
+}
+.auth-link a { color: var(--cyan); text-decoration: none; }
+.auth-link a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div class="nav-logo-mark">S</div>
+        <span class="nav-logo-text">Secure<span>Scan</span></span>
+      </div>
+      <div class="auth-title">Créer un compte</div>
+      <div class="auth-sub">Rejoignez SecureScan</div>
+    </div>
+
+    {% if error %}
+      <div class="auth-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email</label>
+        <input class="auth-input" id="email" type="email" name="email"
+               value="{{ app.request.request.get('email') }}" autocomplete="email" autofocus>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="password">Mot de passe</label>
+        <input class="auth-input" id="password" type="password" name="password" autocomplete="new-password">
+        <span class="auth-hint">Minimum 8 caractères</span>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="confirm">Confirmer le mot de passe</label>
+        <input class="auth-input" id="confirm" type="password" name="confirm" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" type="submit">Créer mon compte →</button>
+    </form>
+
+    <div class="auth-link">
+      Déjà un compte ? <a href="{{ path('app_login') }}">Se connecter</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
