@@ -13,7 +13,7 @@ use ApiPlatform\Metadata\ApiResource;
 #[ApiResource()]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-class User implements PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -64,6 +64,14 @@ class User implements PasswordAuthenticatedUserInterface
         return (string) $this->email;
     }
 
+    /**
+     * @see UserInterface
+     * @return list<string>
+     */
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
 
     /**
      * @see PasswordAuthenticatedUserInterface
