@@ -24,7 +24,7 @@ abstract class AbstractPackageAuditService implements ScannerInterface
     private const TIMEOUT = 60;
 
     /** Catégorie OWASP attribuée à toute vulnérabilité de dépendance. */
-    private const OWASP_CATEGORY = 'A06:2025 — Vulnerable and Outdated Components';
+    private const OWASP_CATEGORY = 'A06:2025 — Composants vulnérables et obsolètes';
 
     public function __construct(
         private EntityManagerInterface $em,

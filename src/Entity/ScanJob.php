@@ -62,8 +62,8 @@ class ScanJob
     #[Groups(['scan_job:read'])]
     private ?int $globalScore = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'scanJobs')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
     #[ORM\OneToMany(targetEntity: Vulnerability::class, mappedBy: 'scanJob', cascade: ['persist', 'remove'])]

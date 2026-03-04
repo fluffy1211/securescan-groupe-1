@@ -78,6 +78,26 @@ else
     exit 1
 fi
 
+# ── 6. PHP-FPM : désactiver clear_env ────────────────────────────────────────
+# Par défaut PHP-FPM efface les variables d'environnement des workers (clear_env=yes).
+# Semgrep a besoin de HOME, PATH et SEMGREP_* pour fonctionner depuis PHP-FPM.
+# On s'assure que clear_env = no est actif à chaque démarrage du conteneur.
+FPM_POOL_CONF="/usr/local/etc/php-fpm.d/www.conf"
+if grep -q "^;clear_env = no" "${FPM_POOL_CONF}" 2>/dev/null; then
+    sed -i 's/^;clear_env = no/clear_env = no/' "${FPM_POOL_CONF}"
+    echo "==> PHP-FPM : clear_env = no activé."
+elif ! grep -q "^clear_env" "${FPM_POOL_CONF}" 2>/dev/null; then
+    echo "clear_env = no" >> "${FPM_POOL_CONF}"
+    echo "==> PHP-FPM : clear_env = no ajouté."
+else
+    echo "==> PHP-FPM : clear_env déjà configuré."
+fi
+
+# ── 7. Répertoire cache Semgrep accessible par www-data ──────────────────────
+mkdir -p /tmp/semgrep-cache
+chmod 777 /tmp/semgrep-cache
+echo "==> Semgrep cache : /tmp/semgrep-cache (777)"
+
 echo "==> Démarrage de PHP-FPM (DEV)..."
 echo ""
 

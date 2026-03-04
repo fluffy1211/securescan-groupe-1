@@ -10,17 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Attribute\Groups;
 
-// Un utilisateur ne peut lire que son propre profil — pas de collection, pas d'écriture via l'API
-#[ApiResource(
-    operations: [
-        new Get(
-            security: "is_granted('ROLE_USER') and object === user",
-        ),
-    ],
-    normalizationContext: ['groups' => ['user:read']],
-)]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -36,8 +26,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     /**
-     * @var string The hashed password
+     * @var list<string>
      */
+    #[ORM\Column]
+    private array $roles = [];
+
     #[ORM\Column]
     private ?string $password = null;
 
@@ -71,12 +64,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @see UserInterface
      * @return list<string>
      */
     public function getRoles(): array
     {
-        return ['ROLE_USER'];
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+        return array_unique($roles);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
     }
 
     public function getPassword(): ?string
@@ -90,41 +93,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, ScanJob>
-     */
-    public function getScanJobs(): Collection
-    {
-        return $this->scanJobs;
-    }
-
-    public function addScanJob(ScanJob $scanJob): static
-    {
-        if (!$this->scanJobs->contains($scanJob)) {
-            $this->scanJobs->add($scanJob);
-            $scanJob->setUser($this);
-        }
-        return $this;
-    }
-
-    public function removeScanJob(ScanJob $scanJob): static
-    {
-        if ($this->scanJobs->removeElement($scanJob)) {
-            if ($scanJob->getUser() === $this) {
-                $scanJob->setUser(null);
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
-     */
     public function __serialize(): array
     {
         $data = (array) $this;
         $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
-
         return $data;
     }
 

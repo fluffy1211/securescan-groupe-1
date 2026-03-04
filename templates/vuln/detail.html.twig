@@ -1,5 +1,13 @@
 {% extends 'base.html.twig' %}
-{% block title %}SecureScan — {{ vuln.package }} · {{ vuln.cve }}{% endblock %}
+{% block title %}SecureScan — {{ vuln.title|slice(0,60) }}{% endblock %}
+
+{# Extraction des données selon l'outil #}
+{% set raw      = vuln.rawData ?? {} %}
+{% set cve      = raw.cve ?? null %}
+{% set fixCmd   = raw.fix ?? null %}
+{% set refUrl   = raw.url ?? null %}
+{% set pkg      = raw.package ?? vuln.filePath %}
+{% set version  = raw.version ?? (vuln.lineNumber ? 'Ligne ' ~ vuln.lineNumber : null) %}
 
 {% block stylesheets %}
 <style>
@@ -28,7 +36,7 @@
 .d-card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
 .detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-.detail-pkg-name { font-size: 1.3rem; font-weight: 900; letter-spacing: -0.3px; color: var(--text); }
+.detail-pkg-name { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.3px; color: var(--text); word-break: break-all; }
 .detail-ver { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text3); margin-top: 4px; }
 .cve-badge {
   font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
@@ -57,23 +65,33 @@
 }
 .fix-copy:hover { background: rgba(5,150,105,0.08); }
 
+/* Meta info */
+.meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.meta-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.72rem; font-weight: 500; color: var(--text2);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; padding: 4px 12px;
+}
+.meta-chip strong { color: var(--text); }
+
 /* Sidebar */
 .detail-right { display: flex; flex-direction: column; gap: 14px; }
 .owasp-sidebar-badge {
-  display: flex; align-items: center; gap: 10px;
-  background: rgba(220,38,38,0.05); border: 1.5px solid rgba(220,38,38,0.15);
   border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px;
+  background: rgba(220,38,38,0.05); border: 1.5px solid rgba(220,38,38,0.15);
 }
-.osb-code { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--red); }
-.osb-name { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.osb-code { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: var(--red); margin-bottom: 4px; }
+.osb-name { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .osb-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
 
 .sev-row { display: flex; flex-direction: column; gap: 8px; }
-.sev-row-top { display: flex; align-items: center; justify-content: space-between; }
-.sev-row-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-.sev-row-score { font-family: var(--font-mono); font-size: 0.78rem; color: var(--red); font-weight: 700; }
+.sev-row-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 4px; }
 .sev-bar { height: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
-.sev-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #FF6B6B, #A78BFA); width: 85%; }
+.sev-bar-fill { height: 100%; border-radius: 3px; }
+.sev-error   .sev-bar-fill { background: var(--red);   width: 90%; }
+.sev-warning .sev-bar-fill { background: var(--amber); width: 55%; }
+.sev-info    .sev-bar-fill { background: var(--green); width: 25%; }
 
 .action-stack { display: flex; flex-direction: column; gap: 8px; }
 .act-btn {
@@ -100,11 +118,13 @@
 <div class="detail-wrap">
 
   <div class="breadcrumb">
-    <a class="bc-link" href="{{ path('app_dashboard') }}">Dashboard</a>
+    <a class="bc-link" href="{{ path('app_dashboard', {id: vuln.scanJob.id}) }}">Dashboard</a>
     <span class="bc-sep">›</span>
-    <span>{{ vuln.package }}</span>
+    <span>{{ pkg|length > 40 ? pkg|slice(0,40) ~ '…' : pkg }}</span>
+    {% if cve %}
     <span class="bc-sep">›</span>
-    <span style="color:var(--primary)">{{ vuln.cve }}</span>
+    <span style="color:var(--primary)">{{ cve }}</span>
+    {% endif %}
   </div>
 
   <div class="detail-grid">
@@ -112,21 +132,37 @@
       <div class="d-card">
         <div class="d-card-label">Vulnérabilité</div>
         <div class="detail-head">
-          <div>
-            <div class="detail-pkg-name">{{ vuln.package }}</div>
-            <div class="detail-ver">Version affectée : {{ vuln.version }}</div>
+          <div style="flex:1; min-width:0;">
+            <div class="detail-pkg-name">{{ vuln.title }}</div>
+            {% if version %}
+            <div class="detail-ver">{{ version }}</div>
+            {% endif %}
           </div>
-          {% if vuln.cve %}
-            <div class="cve-badge">{{ vuln.cve }}</div>
+          {% if cve %}
+            <div class="cve-badge">{{ cve }}</div>
           {% endif %}
         </div>
-        <div class="detail-desc">{{ vuln.title }}</div>
-        {% if vuln.fix %}
+
+        {% if vuln.description %}
+        <div class="detail-desc">{{ vuln.description }}</div>
+        {% endif %}
+
+        <div class="meta-row">
+          <span class="meta-chip">🔧 <strong>{{ vuln.tool }}</strong></span>
+          {% if vuln.filePath %}
+          <span class="meta-chip">📄 <strong>{{ vuln.filePath }}</strong></span>
+          {% endif %}
+          {% if vuln.lineNumber %}
+          <span class="meta-chip">⌗ Ligne <strong>{{ vuln.lineNumber }}</strong></span>
+          {% endif %}
+        </div>
+
+        {% if fixCmd %}
           <div style="margin-top:18px;">
             <div class="fix-label">Commande de correction</div>
             <div class="fix-block">
-              <code>{{ vuln.fix }}</code>
-              <button class="fix-copy" onclick="navigator.clipboard.writeText('{{ vuln.fix }}')">Copier</button>
+              <code>{{ fixCmd }}</code>
+              <button class="fix-copy" onclick="navigator.clipboard.writeText('{{ fixCmd }}');this.textContent='✓ Copié'">Copier</button>
             </div>
           </div>
         {% endif %}
@@ -136,37 +172,40 @@
     <div class="detail-right">
       <div class="d-card">
         <div class="d-card-label">Catégorie OWASP</div>
-        <div class="owasp-sidebar-badge">
-          <span class="osb-code">A05:2025</span>
-          <span class="osb-name">Injection</span>
-        </div>
-        <div class="osb-desc">
-          Les failles d'injection surviennent quand des données non fiables
-          sont envoyées à un interpréteur en tant que commande ou requête.
-        </div>
+        {% if vuln.owaspCategory %}
+          <div class="owasp-sidebar-badge">
+            <div class="osb-code">{{ vuln.owaspCategory|split(' — ')|first }}</div>
+            <div class="osb-name">{{ vuln.owaspCategory|split(' — ')|last }}</div>
+          </div>
+        {% else %}
+          <div style="color:var(--text3); font-size:0.85rem;">Non classifié OWASP Top 10</div>
+        {% endif %}
       </div>
 
-      <div class="d-card">
+      <div class="d-card {{ 'sev-' ~ vuln.severity }}">
         <div class="d-card-label">Sévérité</div>
         <div class="sev-row">
-          <div class="sev-row-top">
-            <span class="sev-row-label">CVSS Score</span>
-            <span class="sev-row-score">8.5 / 10</span>
-          </div>
+          <div class="sev-row-label">Niveau de risque</div>
           <div class="sev-bar"><div class="sev-bar-fill"></div></div>
-          <span class="sev-badge sev-c" style="width:fit-content">{{ vuln.severity|capitalize }}</span>
+          {% if vuln.severity == 'error' %}
+            <span class="sev-badge sev-c" style="width:fit-content">Error — Critique</span>
+          {% elseif vuln.severity == 'warning' %}
+            <span class="sev-badge sev-h" style="width:fit-content">Warning — Modéré</span>
+          {% else %}
+            <span class="sev-badge sev-l" style="width:fit-content">Info — Faible</span>
+          {% endif %}
         </div>
       </div>
 
       <div class="d-card">
         <div class="d-card-label">Actions</div>
         <div class="action-stack">
-          {% if vuln.url %}
-            <a href="{{ vuln.url }}" target="_blank" class="act-btn act-primary">
+          {% if refUrl %}
+            <a href="{{ refUrl }}" target="_blank" class="act-btn act-primary">
               ↗ Voir l'advisory
             </a>
           {% endif %}
-          <a href="{{ path('app_dashboard') }}" class="act-btn act-secondary">
+          <a href="{{ path('app_dashboard', {id: vuln.scanJob.id}) }}" class="act-btn act-secondary">
             ← Retour au dashboard
           </a>
         </div>

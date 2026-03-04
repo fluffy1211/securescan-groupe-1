@@ -8,20 +8,16 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 class HistoryController extends AbstractController
 {
     #[Route('/history', name: 'app_history')]
-    #[IsGranted('ROLE_USER')]
-    public function index(ScanJobRepository $scanJobRepository): Response
+    public function index(ScanJobRepository $repo): Response
     {
-        $user = $this->getUser();
-        $scanJobs = $scanJobRepository->findBy(
-            ['user' => $user],
-            ['createdAt' => 'DESC']
-        );
+        $scans = $repo->findBy(['user' => $this->getUser()], ['createdAt' => 'DESC']);
 
         return $this->render('history/index.html.twig', [
-            'scanJobs' => $scanJobs,
+            'scans' => $scans,
         ]);
     }
 }

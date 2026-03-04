@@ -85,6 +85,11 @@ class AuditOrchestratorService
     {
         $process = new Process(['git', 'clone', '--depth', '1', $url, $dir]);
         $process->setTimeout(120);
+        $process->setEnv([
+            'GIT_TERMINAL_PROMPT' => '0',
+            'GIT_ASKPASS'         => 'echo',
+            'HOME'                => '/tmp',
+        ]);
         $process->run();
 
         if (!$process->isSuccessful()) {

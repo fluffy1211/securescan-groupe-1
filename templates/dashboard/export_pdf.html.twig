@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
+
+  .header { background: linear-gradient(135deg, #FF6B6B, #A78BFA); color: #fff; padding: 24px 32px; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .header .sub { font-size: 11px; opacity: 0.85; }
+  .header .meta { margin-top: 10px; font-size: 10px; opacity: 0.75; }
+
+  .section { margin: 0 32px 20px; }
+
+  /* Score + résumé */
+  .summary-row { display: table; width: 100%; border-collapse: separate; border-spacing: 12px 0; margin-bottom: 4px; }
+  .summary-box { display: table-cell; background: #f8f8fb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 18px; text-align: center; vertical-align: middle; width: 25%; }
+  .summary-box .num { font-size: 28px; font-weight: 900; line-height: 1; }
+  .summary-box .lbl { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin-top: 4px; }
+  .score-box { background: #fff0f0; border-color: #fca5a5; }
+  .score-box .num { color: #FF6B6B; }
+  .err-box .num { color: #dc2626; }
+  .warn-box .num { color: #d97706; }
+  .total-box .num { color: #7C3AED; }
+
+  .verdict {
+    display: inline-block; margin-top: 8px; padding: 4px 14px;
+    border-radius: 100px; font-size: 10px; font-weight: 700;
+  }
+  .verdict-low  { background: #d1fae5; color: #065f46; }
+  .verdict-med  { background: #fef3c7; color: #92400e; }
+  .verdict-high { background: #fee2e2; color: #991b1b; }
+
+  /* OWASP */
+  .section-title { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #f3f4f6; }
+
+  .owasp-table { width: 100%; border-collapse: collapse; }
+  .owasp-table th { background: #f3f4f6; padding: 7px 12px; text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; font-weight: 600; }
+  .owasp-table td { padding: 7px 12px; border-bottom: 1px solid #f3f4f6; font-size: 10px; }
+
+  /* Table vulnérabilités */
+  .vuln-table { width: 100%; border-collapse: collapse; }
+  .vuln-table th { background: #f3f4f6; padding: 7px 12px; text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; font-weight: 600; }
+  .vuln-table td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; font-size: 10px; vertical-align: top; }
+  .vuln-table tr:nth-child(even) td { background: #fafafa; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 700; }
+  .sev-error   { background: #fee2e2; color: #991b1b; }
+  .sev-warning { background: #fef3c7; color: #92400e; }
+  .sev-info    { background: #dbeafe; color: #1e40af; }
+
+  .tool-badge { background: #f3f4f6; color: #374151; padding: 2px 8px; border-radius: 100px; font-size: 9px; font-weight: 500; }
+
+  .owasp-tag { background: #ede9fe; color: #5b21b6; padding: 2px 7px; border-radius: 4px; font-size: 8px; font-weight: 600; }
+
+  .footer { margin-top: 32px; padding: 12px 32px; border-top: 1px solid #e5e7eb; font-size: 9px; color: #9ca3af; text-align: center; }
+
+  .no-break { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+{% set vulns = job.vulnerabilities %}
+{% set score = job.globalScore ?? 0 %}
+{% set countError   = vulns|filter(v => v.severity == 'error')|length %}
+{% set countWarning = vulns|filter(v => v.severity == 'warning')|length %}
+{% set countInfo    = vulns|filter(v => v.severity == 'info')|length %}
+
+<div class="header">
+  <h1>Rapport de sécurité — SecureScan</h1>
+  <div class="sub">{{ job.repoUrl }}</div>
+  <div class="meta">
+    Généré le {{ "now"|date("d/m/Y à H:i") }}
+    {% if job.finishedAt %} · Scan du {{ job.finishedAt|date("d/m/Y à H:i") }}{% endif %}
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Résumé</div>
+  <div class="summary-row">
+    <div class="summary-box score-box">
+      <div class="num">{{ score }}<span style="font-size:14px">/100</span></div>
+      <div class="lbl">Score sécurité</div>
+      <div>
+        {% if score >= 80 %}
+          <span class="verdict verdict-low">Risque faible</span>
+        {% elseif score >= 50 %}
+          <span class="verdict verdict-med">Risque modéré</span>
+        {% else %}
+          <span class="verdict verdict-high">Risque élevé</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="summary-box err-box">
+      <div class="num">{{ countError }}</div>
+      <div class="lbl">Erreurs</div>
+    </div>
+    <div class="summary-box warn-box">
+      <div class="num">{{ countWarning }}</div>
+      <div class="lbl">Avertissements</div>
+    </div>
+    <div class="summary-box total-box">
+      <div class="num">{{ vulns|length }}</div>
+      <div class="lbl">Total</div>
+    </div>
+  </div>
+</div>
+
+{% set owaspVulns = vulns|filter(v => v.owaspCategory is not null) %}
+{% if owaspVulns|length > 0 %}
+{% set owaspGroups = {} %}
+{% for v in owaspVulns %}
+  {% set cat = v.owaspCategory %}
+  {% set owaspGroups = owaspGroups|merge({ (cat): (owaspGroups[cat] ?? 0) + 1 }) %}
+{% endfor %}
+<div class="section no-break">
+  <div class="section-title">Catégories OWASP Top 10 détectées</div>
+  <table class="owasp-table">
+    <thead><tr><th>Catégorie</th><th>Occurrences</th></tr></thead>
+    <tbody>
+      {% for cat, count in owaspGroups %}
+      <tr><td>{{ cat }}</td><td><strong>{{ count }}</strong></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="section">
+  <div class="section-title">Vulnérabilités détectées ({{ vulns|length }})</div>
+  {% if vulns|length == 0 %}
+    <p style="color:#6b7280; text-align:center; padding:20px;">Aucune vulnérabilité détectée — dépôt propre.</p>
+  {% else %}
+  <table class="vuln-table">
+    <thead>
+      <tr>
+        <th style="width:12%">Outil</th>
+        <th style="width:30%">Titre</th>
+        <th style="width:22%">Fichier</th>
+        <th style="width:10%">Sévérité</th>
+        <th style="width:26%">OWASP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for vuln in vulns %}
+      <tr>
+        <td><span class="tool-badge">{{ vuln.tool }}</span></td>
+        <td>{{ vuln.title|length > 55 ? vuln.title|slice(0,55) ~ '…' : vuln.title }}</td>
+        <td style="font-size:9px; color:#6b7280;">
+          {{ vuln.filePath }}
+          {% if vuln.lineNumber %}<br>ligne {{ vuln.lineNumber }}{% endif %}
+        </td>
+        <td>
+          {% if vuln.severity == 'error' %}<span class="badge sev-error">Error</span>
+          {% elseif vuln.severity == 'warning' %}<span class="badge sev-warning">Warning</span>
+          {% else %}<span class="badge sev-info">Info</span>{% endif %}
+        </td>
+        <td>
+          {% if vuln.owaspCategory %}
+            <span class="owasp-tag">{{ vuln.owaspCategory|length > 40 ? vuln.owaspCategory|slice(0,40) ~ '…' : vuln.owaspCategory }}</span>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+
+<div class="footer">
+  SecureScan · Rapport généré automatiquement · {{ "now"|date("d/m/Y") }}
+</div>
+
+</body>
+</html>
