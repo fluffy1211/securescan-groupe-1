@@ -174,8 +174,8 @@ body {
 .op-a07 { color: var(--amber); border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.06); }
 .op-a01 { color: var(--cyan);  border-color: rgba(0,217,245,0.3);  background: rgba(0,217,245,0.06); }
 
-{% block stylesheets %}{% endblock %}
 </style>
+{% block stylesheets %}{% endblock %}
 </head>
 <body>
 
@@ -185,26 +185,29 @@ body {
     <span class="nav-logo-text">Secure<span>Scan</span></span>
   </a>
 
-  {% if app.request.attributes.get('_route') != 'app_home' %}
+  {% if app.request.attributes.get('_route') not in ['app_home', 'app_login', 'app_register'] %}
   <div class="nav-center">
     <a class="nav-tab" href="{{ path('app_home') }}">Accueil</a>
     <a class="nav-tab nav-scan-only {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}"
        href="{{ path('app_dashboard') }}" id="nav-dashboard">Dashboard</a>
-    <a class="nav-tab nav-auth-only {% if app.request.attributes.get('_route') == 'app_history' %}active{% endif %}"
-       href="{{ path('app_history') }}" id="nav-history">Historique</a>
+    {% if app.user %}
+    <a class="nav-tab {% if app.request.attributes.get('_route') == 'app_history' %}active{% endif %}"
+       href="{{ path('app_history') }}">Historique</a>
+    {% endif %}
   </div>
   {% endif %}
 
   <div class="nav-right">
-    {# Bouton connexion — visible si déconnecté #}
-    <a class="nav-btn-login nav-guest-only" href="#" id="nav-login-btn">Connexion</a>
-
-    {# Profil + déconnexion — visibles si connecté #}
-    <a class="nav-avatar nav-auth-only" href="{{ path('app_profile') }}" id="nav-profile-link">
-      <div class="nav-avatar-pic" id="nav-avatar-letter">?</div>
-      <span class="nav-avatar-email" id="nav-avatar-email">—</span>
-    </a>
-    <a class="nav-logout nav-auth-only" href="#" id="nav-logout-btn">Déconnexion</a>
+    {% if app.user %}
+      <a class="nav-avatar" href="{{ path('app_profile') }}">
+        <div class="nav-avatar-pic">{{ app.user.email|first|upper }}</div>
+        <span class="nav-avatar-email">{{ app.user.email }}</span>
+      </a>
+      <a class="nav-logout" href="{{ path('app_logout') }}">Déconnexion</a>
+    {% else %}
+      <a class="nav-btn-login" href="{{ path('app_register') }}">Inscription</a>
+      <a class="nav-btn-login" href="{{ path('app_login') }}" style="background:var(--cyan);color:var(--bg);border-color:var(--cyan);">Connexion</a>
+    {% endif %}
   </div>
 </nav>
 
@@ -213,49 +216,10 @@ body {
 {% block javascripts %}{% endblock %}
 
 <script>
-(function () {
-  const user = JSON.parse(localStorage.getItem('ss_user') || 'null');
-
-  function applyState(u) {
-    const authEls  = document.querySelectorAll('.nav-auth-only');
-    const guestEls = document.querySelectorAll('.nav-guest-only');
-    if (u) {
-      authEls.forEach(el => el.style.display  = 'flex');
-      guestEls.forEach(el => el.style.display = 'none');
-      const letter = document.getElementById('nav-avatar-letter');
-      const email  = document.getElementById('nav-avatar-email');
-      if (letter) letter.textContent = u.email[0].toUpperCase();
-      if (email)  email.textContent  = u.email;
-    } else {
-      authEls.forEach(el  => el.style.display = 'none');
-      guestEls.forEach(el => el.style.display = 'flex');
-    }
-  }
-
-  applyState(user);
-
-  // Affiche le tab Dashboard uniquement si un scan a déjà été lancé
-  if (localStorage.getItem('ss_last_scan')) {
-    document.getElementById('nav-dashboard')?.style.setProperty('display', 'flex');
-  }
-
-  // Bouton connexion : simule un login avec email demo
-  document.getElementById('nav-login-btn')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    const email = prompt('Email de connexion (démo) :');
-    if (email && email.trim()) {
-      localStorage.setItem('ss_user', JSON.stringify({ email: email.trim() }));
-      location.reload();
-    }
-  });
-
-  // Bouton déconnexion
-  document.getElementById('nav-logout-btn')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    localStorage.removeItem('ss_user');
-    location.href = '/';
-  });
-})();
+// Dashboard visible uniquement après un premier scan (localStorage)
+if (localStorage.getItem('ss_last_scan')) {
+  document.getElementById('nav-dashboard')?.style.setProperty('display', 'flex');
+}
 </script>
 </body>
 </html>

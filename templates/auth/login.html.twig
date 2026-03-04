@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+{% block title %}SecureScan — Connexion{% endblock %}
+
+{% block stylesheets %}
+<style>
+.auth-wrap {
+  width: 100%;
+  height: calc(100vh - 58px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+}
+.auth-card {
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--radius-xl); padding: 40px 36px;
+  width: 100%; max-width: 400px;
+}
+.auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 4px; }
+.auth-sub { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3); }
+
+.auth-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.auth-label { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+.auth-input {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 11px 14px;
+  font-family: var(--font-mono); font-size: 0.8rem; color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+.auth-input:focus { border-color: var(--cyan); }
+
+.auth-btn {
+  width: 100%; padding: 12px; margin-top: 8px;
+  background: var(--cyan); color: var(--bg);
+  border: none; border-radius: var(--radius);
+  font-family: var(--font-sans); font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; transition: background 0.15s;
+}
+.auth-btn:hover { background: #33E4FF; }
+
+.auth-error {
+  background: var(--red-dim); border: 1px solid rgba(245,54,92,0.3);
+  border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px;
+  font-family: var(--font-mono); font-size: 0.68rem; color: var(--red);
+}
+.auth-flash-success {
+  background: var(--green-dim); border: 1px solid rgba(54,245,160,0.3);
+  border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px;
+  font-family: var(--font-mono); font-size: 0.68rem; color: var(--green);
+}
+.auth-link {
+  display: block; text-align: center; margin-top: 20px;
+  font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3);
+}
+.auth-link a { color: var(--cyan); text-decoration: none; }
+.auth-link a:hover { text-decoration: underline; }
+
+.remember-row { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+.remember-row input[type=checkbox] { accent-color: var(--cyan); width: 14px; height: 14px; }
+.remember-row label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3); cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div class="nav-logo-mark">S</div>
+        <span class="nav-logo-text">Secure<span>Scan</span></span>
+      </div>
+      <div class="auth-title">Connexion</div>
+      <div class="auth-sub">Accédez à votre espace sécurité</div>
+    </div>
+
+    {% for msg in app.flashes('success') %}
+      <div class="auth-flash-success">{{ msg }}</div>
+    {% endfor %}
+
+    {% if error %}
+      <div class="auth-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+    {% endif %}
+
+    <form method="post" action="{{ path('app_login') }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email</label>
+        <input class="auth-input" id="email" type="email" name="email"
+               value="{{ last_username }}" autocomplete="email" autofocus>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="password">Mot de passe</label>
+        <input class="auth-input" id="password" type="password" name="password" autocomplete="current-password">
+      </div>
+      <div class="remember-row">
+        <input type="checkbox" id="remember_me" name="_remember_me">
+        <label for="remember_me">Se souvenir de moi</label>
+      </div>
+      <button class="auth-btn" type="submit">Se connecter →</button>
+    </form>
+
+    <div class="auth-link">
+      Pas encore de compte ? <a href="{{ path('app_register') }}">Créer un compte</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
