@@ -85,14 +85,14 @@ class SemgrepAuditService implements ScannerInterface
             return [];
         }
 
-        $decoded = json_decode($output, true);
-
-        if (!is_array($decoded) || !isset($decoded['results'])) {
+        try {
+            $decoded = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
             // JSON malformé → on ignore plutôt que de crasher tout le scan
             return [];
         }
 
-        return $decoded['results'];
+        return $decoded['results'] ?? [];
     }
 
     /**
@@ -122,12 +122,8 @@ class SemgrepAuditService implements ScannerInterface
             $vuln->setLineNumber($result['start']['line'] ?? $result['extra']['lines'] ?? null);
 
             // Semgrep peut fournir les labels OWASP sous forme de string ou de tableau
-            $owasp = $result['extra']['metadata']['owasp'] ?? null;
-            $owaspLabels = match (true) {
-                is_array($owasp)  => $owasp,
-                is_string($owasp) => [$owasp],
-                default           => [],
-            };
+            $owasp = $result['extra']['metadata']['owasp'] ?? [];
+            $owaspLabels = is_array($owasp) ? $owasp : [$owasp];
 
             // Normalisation vers le format "A03:2025 — Injection"
             if (!empty($owaspLabels)) {
