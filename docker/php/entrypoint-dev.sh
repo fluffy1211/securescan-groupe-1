@@ -98,12 +98,15 @@ mkdir -p /tmp/semgrep-cache
 chmod 777 /tmp/semgrep-cache
 echo "==> Semgrep cache : /tmp/semgrep-cache (777)"
 
-# ── 8. SQLite WAL mode : évite les deadlocks en lecture/écriture concurrente ──
+# ── 8. SQLite WAL mode + permissions ─────────────────────────────────────────
 # Le mode WAL (Write-Ahead Logging) permet des lectures simultanées pendant les
 # écritures, ce qui élimine l'erreur errno=35 "Resource deadlock avoided".
+# On s'assure aussi que le fichier appartient à www-data (évite "readonly database").
 if [ -f "var/securescan.db" ]; then
+    chown www-data:www-data var/securescan.db 2>/dev/null || true
+    chmod 664 var/securescan.db 2>/dev/null || true
     sqlite3 var/securescan.db "PRAGMA journal_mode=WAL; PRAGMA busy_timeout=30000;" > /dev/null 2>&1 || true
-    echo "==> SQLite : mode WAL activé (busy_timeout=30s)"
+    echo "==> SQLite : mode WAL activé (busy_timeout=30s), permissions OK"
 fi
 
 echo "==> Démarrage de PHP-FPM (DEV)..."

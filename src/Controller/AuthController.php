@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -31,6 +32,7 @@ class AuthController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $hasher,
         UserRepository $userRepository,
+        RateLimiterFactory $registerLimiter,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');
@@ -39,6 +41,11 @@ class AuthController extends AbstractController
         $error = null;
 
         if ($request->isMethod('POST')) {
+            $limiter = $registerLimiter->create($request->getClientIp() ?? 'anonymous');
+            if (!$limiter->consume(1)->isAccepted()) {
+                $error = 'Trop de tentatives d\'inscription. Veuillez patienter avant de réessayer.';
+                return $this->render('auth/register.html.twig', ['error' => $error]);
+            }
             $email    = trim((string) $request->request->get('email', ''));
             $password = (string) $request->request->get('password', '');
             $confirm  = (string) $request->request->get('confirm', '');
