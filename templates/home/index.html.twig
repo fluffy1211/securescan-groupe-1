@@ -24,7 +24,7 @@
     <form class="scan-form" action="{{ path('app_scan_launch') }}" method="POST">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token('scan_launch') }}">
       <div class="scan-prefix">
-        <span style="color:var(--primary)">❯</span>
+        <span class="scan-prefix-accent">❯</span>
         git clone
       </div>
       <input class="scan-input" type="text" name="repo"
@@ -57,12 +57,5 @@
 {% endblock %}
 
 {% block javascripts %}
-<script>
-document.querySelector('.scan-form')?.addEventListener('submit', function () {
-  const repo = document.querySelector('.scan-input')?.value?.trim();
-  if (repo) {
-    localStorage.setItem('ss_last_scan', JSON.stringify({ repo, date: new Date().toISOString() }));
-  }
-});
-</script>
+<script src="{{ asset('js/home.js') }}"></script>
 {% endblock %}

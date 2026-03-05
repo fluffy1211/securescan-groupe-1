@@ -41,7 +41,7 @@
             {% if s.status == 'failed' %}
               <span class="sev-badge sev-c">Échec</span>
             {% elseif s.status == 'pending' or s.status == 'running' %}
-              <span class="sev-badge" style="background:rgba(217,119,6,0.1);color:var(--amber);border-color:rgba(217,119,6,0.2)">En cours</span>
+              <span class="sev-badge sev-badge--pending">En cours</span>
             {% else %}
               <div class="scan-badges">
                 {% if countError   > 0 %}<span class="sev-badge sev-c">{{ countError }} Error</span>{% endif %}

@@ -167,3 +167,22 @@ tbody tr:hover .td-arrow { color: var(--primary); }
   .stats-strip { grid-template-columns: repeat(2,1fr); }
   .owasp-row { grid-template-columns: 1fr; }
 }
+
+@media print {
+  nav, .dash-actions, .filter-tabs, .vtable-top .vtable-meta { display: none !important; }
+  body { background: white !important; }
+  .dashboard { padding: 16px !important; max-width: 100% !important; }
+  .score-card, .stats-strip, .o-card, .vtable-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+  tbody tr { break-inside: avoid; }
+  a { color: inherit !important; text-decoration: none !important; }
+  .score-num { -webkit-text-fill-color: #FF6B6B !important; }
+}
+
+/* Utilitaires */
+.dashboard-empty {
+  text-align: center; padding: 60px 20px; color: var(--text3);
+}
+.dashboard-empty-icon { font-size: 2rem; margin-bottom: 12px; }
+.dashboard-empty-title { font-weight: 700; color: var(--text); }
+.dashboard-empty-sub { font-size: 0.82rem; margin-top: 6px; }
+.owasp-empty { color: var(--text3); }

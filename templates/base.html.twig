@@ -18,7 +18,7 @@
   </a>
 
   {% if app.user and app.request.attributes.get('_route') not in ['app_login', 'app_register'] %}
-  <div class="nav-center" id="nav-center-pill" style="display:none">
+  <div class="nav-center" id="nav-center-pill">
     <a class="nav-tab {% if app.request.attributes.get('_route') in ['app_dashboard', 'app_dashboard_empty'] %}active{% endif %}"
        id="nav-dashboard" href="{{ path('app_dashboard_empty') }}">Dashboard</a>
   </div>
@@ -57,12 +57,6 @@
 
 {% block javascripts %}{% endblock %}
 
-<script>
-const dashTab = document.getElementById('nav-dashboard');
-if (dashTab && localStorage.getItem('ss_last_scan')) {
-  dashTab.style.display = 'flex';
-  if (dashTab.dataset.active) dashTab.classList.add('active');
-}
-</script>
+<script src="{{ asset('js/nav.js') }}"></script>
 </body>
 </html>
