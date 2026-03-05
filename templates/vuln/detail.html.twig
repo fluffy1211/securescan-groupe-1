@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}SecureScan — {{ vuln.package }} · {{ vuln.cve }}{% endblock %}
+{% block title %}SecureScan — {{ vuln.rawData.package ?? vuln.filePath }} · {{ vuln.rawData.cve ?? vuln.owaspCategory }}{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ asset('css/vuln_detail.css') }}">
@@ -9,11 +9,11 @@
 <div class="detail-wrap">
 
   <div class="breadcrumb">
-    <a class="bc-link" href="{{ path('app_dashboard') }}">Dashboard</a>
+    <a class="bc-link" href="{{ path('app_dashboard', {'id': vuln.scanJob.id}) }}">Dashboard</a>
     <span class="bc-sep">›</span>
-    <span>{{ vuln.package }}</span>
+    <span>{{ vuln.rawData.package ?? vuln.filePath }}</span>
     <span class="bc-sep">›</span>
-    <span style="color:var(--primary)">{{ vuln.cve }}</span>
+    <span style="color:var(--primary)">{{ vuln.rawData.cve ?? vuln.owaspCategory }}</span>
   </div>
 
   <div class="detail-grid">
@@ -22,20 +22,20 @@
         <div class="d-card-label">Vulnérabilité</div>
         <div class="detail-head">
           <div>
-            <div class="detail-pkg-name">{{ vuln.package }}</div>
-            <div class="detail-ver">Version affectée : {{ vuln.version }}</div>
+            <div class="detail-pkg-name">{{ vuln.rawData.package ?? vuln.filePath }}</div>
+            <div class="detail-ver">Version affectée : {{ vuln.rawData.version ?? 'N/A' }}</div>
           </div>
-          {% if vuln.cve %}
-            <div class="cve-badge">{{ vuln.cve }}</div>
+          {% if vuln.rawData.cve is defined and vuln.rawData.cve %}
+            <div class="cve-badge">{{ vuln.rawData.cve }}</div>
           {% endif %}
         </div>
         <div class="detail-desc">{{ vuln.title }}</div>
-        {% if vuln.fix %}
+        {% if vuln.rawData.fix is defined and vuln.rawData.fix %}
           <div style="margin-top:18px;">
             <div class="fix-label">Commande de correction</div>
             <div class="fix-block">
-              <code>{{ vuln.fix }}</code>
-              <button class="fix-copy" onclick="navigator.clipboard.writeText('{{ vuln.fix }}')">Copier</button>
+              <code>{{ vuln.rawData.fix }}</code>
+              <button class="fix-copy" onclick="navigator.clipboard.writeText('{{ vuln.rawData.fix }}')">Copier</button>
             </div>
           </div>
         {% endif %}
@@ -70,12 +70,12 @@
       <div class="d-card">
         <div class="d-card-label">Actions</div>
         <div class="action-stack">
-          {% if vuln.url %}
-            <a href="{{ vuln.url }}" target="_blank" class="act-btn act-primary">
+          {% if vuln.rawData.url is defined and vuln.rawData.url %}
+            <a href="{{ vuln.rawData.url }}" target="_blank" class="act-btn act-primary">
               ↗ Voir l'advisory
             </a>
           {% endif %}
-          <a href="{{ path('app_dashboard') }}" class="act-btn act-secondary">
+          <a href="{{ path('app_dashboard', {'id': vuln.scanJob.id}) }}" class="act-btn act-secondary">
             ← Retour au dashboard
           </a>
         </div>
