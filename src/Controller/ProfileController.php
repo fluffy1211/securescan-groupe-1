@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\ScanJobRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,6 +50,7 @@ class ProfileController extends AbstractController
     public function deleteAccount(
         Request $request,
         EntityManagerInterface $em,
+        ScanJobRepository $scanJobRepository,
     ): Response {
         if (!$this->isCsrfTokenValid('delete_account', $request->request->get('_token'))) {
             $this->addFlash('danger_error', 'Token invalide.');
@@ -56,6 +58,13 @@ class ProfileController extends AbstractController
         }
 
         $user = $this->getUser();
+
+        // Supprimer les scans de l'utilisateur avant de supprimer le compte
+        $userScans = $scanJobRepository->findBy(['user' => $user]);
+        foreach ($userScans as $scan) {
+            $em->remove($scan);
+        }
+
         $this->container->get('security.token_storage')->setToken(null);
         $request->getSession()->invalidate();
 

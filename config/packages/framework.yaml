@@ -21,6 +21,16 @@ framework:
     php_errors:
         log: true
 
+    rate_limiter:
+        scan_launch:
+            policy: fixed_window
+            limit: 5
+            interval: '1 minute'
+        register:
+            policy: fixed_window
+            limit: 5
+            interval: '10 minutes'
+
 when@test:
     framework:
         test: true

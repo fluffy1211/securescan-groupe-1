@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\ScanJob;
 use App\Entity\Vulnerability;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Process;
 
 /**
@@ -39,6 +40,7 @@ class SemgrepAuditService implements ScannerInterface
     public function __construct(
         private EntityManagerInterface $em,
         private DescriptionTranslatorService $translator,
+        private LoggerInterface $logger,
     ) {}
 
     /**
@@ -82,14 +84,21 @@ class SemgrepAuditService implements ScannerInterface
         $output = trim($process->getOutput());
 
         if (empty($output)) {
-            // Semgrep n'a rien trouvé ou a échoué silencieusement → 0 findings
+            $this->logger->warning('Semgrep returned empty output for directory {dir}. Exit code: {code}', [
+                'dir'    => $dir,
+                'code'   => $process->getExitCode(),
+                'stderr' => $process->getErrorOutput(),
+            ]);
             return [];
         }
 
         try {
             $decoded = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            // JSON malformé → on ignore plutôt que de crasher tout le scan
+        } catch (\JsonException $e) {
+            $this->logger->error('Semgrep output is not valid JSON for directory {dir}: {error}', [
+                'dir'   => $dir,
+                'error' => $e->getMessage(),
+            ]);
             return [];
         }
 
@@ -154,25 +163,27 @@ class SemgrepAuditService implements ScannerInterface
      */
     private function normalizeOwaspLabels(array $labels): array
     {
-        $normalized = [];
+        $matched   = [];
+        $unmatched = [];
 
         foreach ($labels as $label) {
-            $matched = false;
+            $found = false;
             foreach (self::OWASP_TOP10_2025 as $key => $name) {
                 // On compare uniquement le rang (ex: "A03") pour ignorer l'année d'origine
                 $rank = substr($key, 0, 3);
                 if (str_starts_with(strtoupper(trim($label)), $rank)) {
-                    $normalized[$rank] = $rank . ':2025 — ' . $name;
-                    $matched = true;
+                    // Clé $rank pour dédupliquer les entrées du même rang
+                    $matched[$rank] = $rank . ':2025 — ' . $name;
+                    $found = true;
                     break;
                 }
             }
             // Label inconnu (pas dans le Top 10) : on le garde tel quel
-            if (!$matched) {
-                $normalized[] = $label;
+            if (!$found) {
+                $unmatched[] = $label;
             }
         }
 
-        return array_values($normalized);
+        return array_values(array_merge($matched, $unmatched));
     }
 }
