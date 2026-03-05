@@ -1,7 +1,13 @@
 # SecureScan
 
-Plateforme web d'analyse de sécurité de code source basée sur l'OWASP Top 10 2025.  
+Plateforme web d'analyse de sécurité de code source basée sur l'OWASP 2025.  
 SecureScan orchestre plusieurs outils d'analyse open source, agrège leurs résultats et les présente dans un dashboard interactif avec export PDF/JSON.
+
+---
+
+## Maquette Figma
+
+📐 [Maquette SecureScan sur Figma](https://www.figma.com/design/jCtbaKOAAK7qyXQPsV8wNn/SecureScan?node-id=0-1&t=KX6jfAAdLHNkKd2T-1)
 
 ---
 
@@ -9,14 +15,13 @@ SecureScan orchestre plusieurs outils d'analyse open source, agrège leurs résu
 
 - **Analyse automatisée** depuis une URL de dépôt GitHub public
 - **3 outils d'analyse intégrés** :
-  - [Semgrep](https://semgrep.dev/) — analyse statique du code source (SAST)
-  - [npm audit](https://docs.npmjs.com/cli/v10/commands/npm-audit) — audit des dépendances Node.js
-  - [Composer audit](https://getcomposer.org/doc/03-cli.md#audit) — audit des dépendances PHP
+  - [Semgrep]— analyse statique du code source (SAST)
+  - [npm audit]— audit des dépendances Node.js
+  - [Composer audit] — audit des dépendances PHP
 - **Mapping OWASP Top 10 2025** — chaque vulnérabilité est catégorisée
 - **Score de sécurité** calculé avec une formule multiplicative (0–100)
 - **Dashboard interactif** avec filtres par sévérité et détail par vulnérabilité
 - **Export PDF** (rapport complet avec titre, résumé, tableau et détail) et **JSON**
-- **Descriptions en français** via un service de traduction automatique
 - **Historique des scans** par utilisateur connecté
 - **Authentification** — inscription / connexion (optionnel pour lancer un scan)
 
@@ -30,17 +35,11 @@ SecureScan orchestre plusieurs outils d'analyse open source, agrège leurs résu
 | Base de données | SQLite (via Doctrine ORM) |
 | Analyse | Semgrep · npm audit · Composer audit |
 | PDF | DomPDF |
-| Frontend | Twig · CSS custom (thème clair violet/rose) |
-| Environnement | Docker · Docker Compose |
+| Frontend | Twig · CSS |
+| Environnement | Docker |
 
 ---
 
-## Prérequis
-
-- [Docker](https://www.docker.com/) et [Docker Compose](https://docs.docker.com/compose/)
-- Git
-
----
 
 ## Installation et démarrage
 
@@ -64,9 +63,6 @@ Le premier build peut prendre quelques minutes (installation de Semgrep, npm, Co
 ```bash
 docker exec securescan-app php bin/console doctrine:migrations:migrate --no-interaction
 ```
-
-> Si la base est vierge, vous pouvez aussi utiliser :  
-> `docker exec securescan-app php bin/console doctrine:schema:create`
 
 ### 4. Accéder à l'application
 
@@ -150,6 +146,28 @@ AuditOrchestratorService::audit()
 
 ---
 
+## Diagrammes
+
+### Diagramme de classes UML
+
+![Diagramme de classes UML - SecureScan](docs/diagramme-classes-uml.png)
+
+*Entités User, ScanJob, Vulnerability et leurs relations (Groupe 1 — 02/03/2026)*
+
+### Diagramme de cas d'utilisation
+
+![Diagramme de cas d'utilisation](docs/diagramme-cas-utilisation.png)
+
+*Fonctionnalités en accès libre (Visiteur) et connexion requise (Utilisateur connecté)*
+
+### Diagramme de séquence — Connexion utilisateur
+
+![Diagramme de séquence — Connexion](docs/diagramme-sequence-connexion.png)
+
+*Flux d'authentification : AuthController, Security (form_login), UserProvider, Session*
+
+---
+
 ## Scoring
 
 Le score global est calculé par **décroissance multiplicative** :
@@ -163,7 +181,7 @@ Poids : error = 15  |  warning = 6  |  info = 2
 ```
 
 Un projet sans vulnérabilité obtient **100/100**.  
-Un projet très vulnérable converge vers **0** sans jamais y tomper brutalement.
+Un projet très vulnérable converge vers **0**.
 
 ---
 
@@ -191,10 +209,10 @@ DATABASE_URL="sqlite:///%kernel.project_dir%/var/securescan.db"
 
 ## Équipe
 
-Projet réalisé dans le cadre du **Hackathon SecureScan IPSSI 2026**.
-
+Projet réalisé dans le cadre du **Hackathon SecureScan IPSSI 2026** avec :
+Gabriel Martin
+Chahrazed Soltani
+Ayman Mougou
+Rayan Degane WAFO MBE
 ---
 
-## Licence
-
-MIT
