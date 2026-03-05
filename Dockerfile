@@ -51,8 +51,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-pip \
         python3-venv \
         ca-certificates \
-        nodejs \
-        npm \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -111,6 +109,13 @@ EXPOSE 9000
 FROM base AS dev
 
 ENV APP_ENV=dev
+
+# ── Node.js / npm (dev uniquement — npm audit) ───────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        nodejs \
+        npm \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # ── Xdebug ────────────────────────────────────────────────────────────────────
 # xdebug.discover_client_host=true : essaie de détecter l'IP du client

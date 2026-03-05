@@ -22,6 +22,7 @@
     </p>
 
     <form class="scan-form" action="{{ path('app_scan_launch') }}" method="POST">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token('scan_launch') }}">
       <div class="scan-prefix">
         <span style="color:var(--primary)">❯</span>
         git clone

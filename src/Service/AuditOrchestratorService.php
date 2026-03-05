@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\ScanJob;
 use App\Enum\ScanStatus;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\Process\Process;
 
@@ -36,6 +37,7 @@ class AuditOrchestratorService
         private EntityManagerInterface $em,
         #[AutowireIterator('app.scanner')]
         private iterable $scanners,
+        private LoggerInterface $logger,
         private string $tmpDir = '/tmp',
     ) {}
 
@@ -70,6 +72,12 @@ class AuditOrchestratorService
             // En cas d'erreur, on marque le job comme échoué
             $job->setStatus(ScanStatus::FAILED);
             $job->setFinishedAt(new \DateTimeImmutable());
+            $this->logger->error('Audit failed for job {id}: {message}', [
+                'id'        => $job->getId(),
+                'repoUrl'   => $job->getRepoUrl(),
+                'message'   => $e->getMessage(),
+                'exception' => $e,
+            ]);
             throw $e;
         } finally {
             // Étape 5 : persistance finale et nettoyage garanti (même en cas d'erreur)
