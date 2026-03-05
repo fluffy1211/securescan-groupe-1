@@ -14,7 +14,7 @@ class HistoryController extends AbstractController
     #[Route('/history', name: 'app_history')]
     public function index(ScanJobRepository $repo): Response
     {
-        $scans = $repo->findBy(['user' => $this->getUser()], ['createdAt' => 'DESC']);
+        $scans = $repo->findBy(['user' => $this->getUser(), 'status' => 'done'], ['createdAt' => 'DESC']);
 
         return $this->render('history/index.html.twig', [
             'scans' => $scans,

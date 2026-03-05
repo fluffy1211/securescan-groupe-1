@@ -111,13 +111,13 @@
 
     <div class="loading-status-badge">
       <span class="status-dot" id="status-dot"></span>
-      <span id="status-label">Analyse en cours...</span>
+      <span id="status-label">{% if immediateError is defined and immediateError %}Échec de l'analyse{% else %}Analyse en cours...{% endif %}</span>
     </div>
 
     <div class="loading-title">Analyse de votre dépôt</div>
     <div class="loading-repo">
       <span>◈</span>
-      <span>{{ job.repoUrl|replace({'https://': '', 'http://': ''}) }}</span>
+      <span>{% if immediateError is defined and immediateError %}{{ errorRepo|default('')|replace({'https://': '', 'http://': ''}) }}{% else %}{{ job.repoUrl|replace({'https://': '', 'http://': ''}) }}{% endif %}</span>
     </div>
 
     <div class="steps">
@@ -155,7 +155,8 @@
 
     <div class="error-box" id="error-box">
       <strong>Erreur lors de l'analyse</strong>
-      <span id="error-msg"></span>
+      <span id="error-msg">{% if immediateError is defined and immediateError %}{{ immediateError }}{% endif %}</span>
+      <a href="{{ path('app_home') }}" style="display:inline-block;margin-top:10px;font-size:0.8rem;color:var(--primary);text-decoration:none;">← Réessayer</a>
     </div>
 
   </div>
@@ -163,6 +164,14 @@
 {% endblock %}
 
 {% block javascripts %}
+{% if immediateError is defined and immediateError %}
+<script>
+(function() {
+  document.getElementById('status-dot').style.background = '#DC2626';
+  document.getElementById('error-box').style.display = 'block';
+})();
+</script>
+{% else %}
 <script>
 const runUrl    = "{{ path('app_scan_run', {id: job.id}) }}";
 const csrfToken = "{{ csrf_token('scan_run') }}";
@@ -222,4 +231,5 @@ function showError(msg) {
   document.getElementById('error-msg').textContent = msg;
 }
 </script>
+{% endif %}
 {% endblock %}
