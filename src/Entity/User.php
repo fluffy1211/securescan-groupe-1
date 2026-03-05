@@ -116,4 +116,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
     }
+
+    /**
+     * @return Collection<int, ScanJob>
+     */
+    public function getScanJobs(): Collection
+    {
+        return $this->scanJobs;
+    }
+
+    public function addScanJob(ScanJob $scanJob): static
+    {
+        if (!$this->scanJobs->contains($scanJob)) {
+            $this->scanJobs->add($scanJob);
+            $scanJob->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeScanJob(ScanJob $scanJob): static
+    {
+        if ($this->scanJobs->removeElement($scanJob)) {
+            if ($scanJob->getUser() === $this) {
+                $scanJob->setUser(null);
+            }
+        }
+        return $this;
+    }
 }
