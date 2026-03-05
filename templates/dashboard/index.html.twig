@@ -2,197 +2,10 @@
 {% block title %}SecureScan — Dashboard{% endblock %}
 
 {% block stylesheets %}
-<style>
-.dashboard { padding: 36px 40px; max-width: 1300px; margin: 0 auto; }
-
-.dash-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
-}
-.dash-left { display: flex; flex-direction: column; gap: 6px; }
-.dash-title {
-  font-size: 1.6rem; font-weight: 900; letter-spacing: -0.6px;
-  display: flex; align-items: center; gap: 10px;
-}
-.dash-title-badge {
-  font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600;
-  padding: 3px 10px; background: rgba(5,150,105,0.1);
-  border: 1px solid rgba(5,150,105,0.25); color: var(--green);
-  border-radius: 100px;
-}
-.dash-repo { font-size: 0.85rem; color: var(--text2); display: flex; align-items: center; gap: 6px; }
-.dash-repo-link { color: var(--primary); text-decoration: none; font-weight: 500; }
-.dash-repo-link:hover { text-decoration: underline; }
-.dash-actions { display: flex; gap: 8px; align-items: center; }
-
-.export-group {
-  display: flex; align-items: center; gap: 2px;
-  background: var(--bg); border: 1.5px solid var(--border);
-  border-radius: var(--radius); padding: 3px; box-shadow: var(--shadow);
-}
-.exp-btn {
-  display: flex; align-items: center; gap: 6px;
-  font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500;
-  padding: 6px 14px; border-radius: var(--radius-sm); border: none;
-  background: transparent; cursor: pointer; transition: all 0.15s; color: var(--text2);
-}
-.exp-btn:hover { background: var(--surface); color: var(--text); }
-.exp-btn svg { width: 12px; height: 12px; }
-.btn-rescan {
-  display: flex; align-items: center; gap: 6px;
-  font-family: var(--font-sans); font-size: 0.82rem; font-weight: 600;
-  padding: 8px 18px; border-radius: 100px;
-  border: 1.5px solid var(--border2); background: transparent;
-  color: var(--text2); cursor: pointer; transition: all 0.15s; text-decoration: none;
-}
-.btn-rescan:hover { border-color: var(--primary); color: var(--primary); }
-
-/* Score row */
-.score-row { display: grid; grid-template-columns: 220px 1fr; gap: 16px; margin-bottom: 16px; }
-.score-card {
-  background: var(--card); border: 1.5px solid var(--border);
-  border-radius: var(--radius-xl); padding: 28px 20px;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 12px;
-  box-shadow: var(--shadow);
-}
-.score-ring-wrap { position: relative; width: 100px; height: 100px; }
-.score-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.score-track { fill: none; stroke: var(--border); stroke-width: 6; }
-.score-fill  { fill: none; stroke: url(#scoreGrad); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 88; }
-.score-num {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 1.8rem; font-weight: 900; letter-spacing: -2px;
-  background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.score-label { font-size: 0.75rem; font-weight: 600; color: var(--text2); letter-spacing: 0.3px; }
-.score-verdict { font-size: 0.82rem; font-weight: 700; color: var(--amber); }
-
-/* Stats strip */
-.stats-strip {
-  background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-xl);
-  display: grid; grid-template-columns: repeat(4,1fr); overflow: hidden; box-shadow: var(--shadow);
-}
-.s-stat {
-  padding: 22px 20px; border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; gap: 6px; position: relative;
-}
-.s-stat:last-child { border-right: none; }
-.s-stat::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 3px 3px; }
-.s-stat.crit::after { background: var(--red); }
-.s-stat.high::after { background: var(--amber); }
-.s-stat.med::after  { background: var(--orange); }
-.s-stat.low::after  { background: var(--green); }
-.s-num { font-size: 2.2rem; font-weight: 900; line-height: 1; letter-spacing: -2px; }
-.s-stat.crit .s-num { color: var(--red); }
-.s-stat.high .s-num { color: var(--amber); }
-.s-stat.med  .s-num { color: var(--orange); }
-.s-stat.low  .s-num { color: var(--green); }
-.s-lbl { font-size: 0.72rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
-
-/* OWASP */
-.owasp-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 16px; }
-.o-card {
-  background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-xl);
-  padding: 20px 22px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
-  position: relative; overflow: hidden; box-shadow: var(--shadow);
-}
-.o-card:hover { box-shadow: var(--shadow-md); }
-.o-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
-.o-card.a05::before { background: var(--red); }
-.o-card.a07::before { background: var(--amber); }
-.o-card.a01::before { background: #7C3AED; }
-.o-card:hover { border-color: var(--primary); }
-.o-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
-.o-code {
-  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600;
-  padding: 3px 8px; border-radius: 100px; border: 1px solid;
-}
-.o-card.a05 .o-code { color: var(--red);   border-color: rgba(220,38,38,0.3);   background: rgba(220,38,38,0.06); }
-.o-card.a07 .o-code { color: var(--amber); border-color: rgba(217,119,6,0.3);   background: rgba(217,119,6,0.06); }
-.o-card.a01 .o-code { color: #7C3AED;     border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.06); }
-.o-count { font-size: 2.4rem; font-weight: 900; letter-spacing: -2px; line-height: 1; }
-.o-card.a05 .o-count { color: var(--red); }
-.o-card.a07 .o-count { color: var(--amber); }
-.o-card.a01 .o-count { color: #7C3AED; }
-.o-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; line-height: 1.3; color: var(--text); }
-.o-badges { display: flex; flex-wrap: wrap; gap: 5px; }
-
-/* Table */
-.vtable-card {
-  background: var(--card); border: 1.5px solid var(--border);
-  border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow);
-}
-.vtable-top {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 22px; border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
-.vtable-title { font-size: 0.95rem; font-weight: 700; color: var(--text); }
-.vtable-meta { display: flex; align-items: center; gap: 12px; }
-.vtable-count { font-size: 0.78rem; color: var(--text3); font-weight: 500; }
-.filter-tabs {
-  display: flex; gap: 2px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px;
-}
-.ftab {
-  font-family: var(--font-sans); font-size: 0.75rem; font-weight: 500;
-  padding: 4px 12px; border-radius: var(--radius-sm); color: var(--text3);
-  cursor: pointer; transition: all 0.15s; border: none; background: none;
-}
-.ftab:hover { color: var(--text); }
-.ftab.on { background: var(--bg); color: var(--primary); font-weight: 700; box-shadow: var(--shadow); }
-table { width: 100%; border-collapse: collapse; }
-thead tr { background: var(--bg2); border-bottom: 1px solid var(--border); }
-th {
-  font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600; color: var(--text3);
-  text-transform: uppercase; letter-spacing: 1px; padding: 11px 20px;
-  text-align: left; white-space: nowrap;
-}
-tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(255,107,107,0.03); }
-td { padding: 14px 20px; font-size: 0.82rem; }
-.td-tool {
-  display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem;
-  padding: 3px 10px; border-radius: 100px;
-  background: var(--surface); border: 1px solid var(--border); color: var(--text2); font-weight: 500;
-}
-.td-pkg { color: var(--text); font-weight: 600; }
-.td-ver { color: var(--text3); font-size: 0.72rem; font-weight: 400; }
-.td-cve { color: var(--primary); font-weight: 500; font-family: var(--font-mono); font-size: 0.72rem; }
-.td-cve:hover { text-decoration: underline; }
-.td-arrow { color: var(--text3); font-size: 1rem; }
-tbody tr:hover .td-arrow { color: var(--primary); }
-
-@media (max-width: 1024px) { .owasp-row { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 768px) {
-  .dashboard { padding: 24px 20px; }
-  .score-row { grid-template-columns: 1fr; }
-  .stats-strip { grid-template-columns: repeat(2,1fr); }
-  .owasp-row { grid-template-columns: 1fr; }
-}
-
-@media print {
-  nav, .dash-actions, .filter-tabs, .vtable-top .vtable-meta { display: none !important; }
-  body { background: white !important; }
-  .dashboard { padding: 16px !important; max-width: 100% !important; }
-  .score-card, .stats-strip, .o-card, .vtable-card { box-shadow: none !important; border: 1px solid #ddd !important; }
-  tbody tr { break-inside: avoid; }
-  a { color: inherit !important; text-decoration: none !important; }
-  .score-num { -webkit-text-fill-color: #FF6B6B !important; }
-}
-</style>
+<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 {% endblock %}
 
 {% block body %}
-{% set vulns = job.vulnerabilities %}
-{% set score = job.globalScore ?? 0 %}
-{% set countError   = vulns|filter(v => v.severity == 'error')|length %}
-{% set countWarning = vulns|filter(v => v.severity == 'warning')|length %}
-{% set countInfo    = vulns|filter(v => v.severity == 'info')|length %}
-{% set dashOffset   = 251 - (score / 100 * 251) %}
-
 <div class="dashboard">
 
   <div class="dash-header">
@@ -203,29 +16,20 @@ tbody tr:hover .td-arrow { color: var(--primary); }
       </div>
       <div class="dash-repo">
         <span>◈</span>
-        <a class="dash-repo-link" href="{{ job.repoUrl }}" target="_blank">
-          {{ job.repoUrl|replace({'https://': '', 'http://': ''}) }}
-        </a>
-        {% if job.finishedAt %}
-        <span>· {{ job.finishedAt|date('d/m/Y à H\\hi') }}</span>
-        {% endif %}
+        <a class="dash-repo-link" href="#">github.com/juice-shop/juice-shop</a>
+        <span>· Scanné il y a 2 min</span>
       </div>
     </div>
     <div class="dash-actions">
       <div class="export-group">
-        <a href="{{ path('app_dashboard_export_json', {id: job.id}) }}" class="exp-btn" title="Télécharger le rapport JSON">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M8 2v8m0 0-3-3m3 3 3-3M3 13h10" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          JSON
-        </a>
-        <a href="{{ path('app_dashboard_export_pdf', {id: job.id}) }}" class="exp-btn" title="Télécharger le rapport PDF">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="6" width="10" height="7" rx="1"/>
-            <path d="M5 6V3h6v3M5 10h2m-2 2.5h4" stroke-linecap="round"/>
-          </svg>
+        <button class="exp-btn pdf">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 0h5.5L14 4.5V16H4V0zm1 1v14h8V5h-4V1H5zm5 0v3h3L10 1z"/></svg>
           PDF
-        </a>
+        </button>
+        <button class="exp-btn json">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h4v1.5H3.5v9H6V14H2V2zm12 0v12h-4v-1.5h2.5v-9H10V2h4z"/></svg>
+          JSON
+        </button>
       </div>
       <a href="{{ path('app_home') }}" class="btn-rescan">↻ Nouveau scan</a>
     </div>
@@ -242,94 +46,106 @@ tbody tr:hover .td-arrow { color: var(--primary); }
             </linearGradient>
           </defs>
           <circle class="score-track" cx="50" cy="50" r="40"/>
-          <circle class="score-fill" cx="50" cy="50" r="40"
-                  style="stroke-dashoffset: {{ dashOffset }}"/>
+          <circle class="score-fill"  cx="50" cy="50" r="40"/>
         </svg>
-        <div class="score-num">{{ score }}</div>
+        <div class="score-num">65</div>
       </div>
       <div class="score-label">Score sécurité</div>
-      <div class="score-verdict">
-        {% if score >= 80 %}✅ Risque faible
-        {% elseif score >= 50 %}⚠ Risque modéré
-        {% else %}🔴 Risque élevé{% endif %}
-      </div>
+      <div class="score-verdict">⚠ Risque modéré</div>
     </div>
     <div class="stats-strip">
-      <div class="s-stat crit"><span class="s-num">{{ countError }}</span><span class="s-lbl">Critique</span></div>
-      <div class="s-stat high"><span class="s-num">{{ countWarning }}</span><span class="s-lbl">Modéré</span></div>
-      <div class="s-stat low"><span class="s-num">{{ countInfo }}</span><span class="s-lbl">Information</span></div>
-      <div class="s-stat med"><span class="s-num">{{ vulns|length }}</span><span class="s-lbl">Total</span></div>
+      <div class="s-stat crit"><span class="s-num">2</span><span class="s-lbl">Critical</span></div>
+      <div class="s-stat high"><span class="s-num">5</span><span class="s-lbl">High</span></div>
+      <div class="s-stat med"><span class="s-num">3</span><span class="s-lbl">Medium</span></div>
+      <div class="s-stat low"><span class="s-num">4</span><span class="s-lbl">Low</span></div>
     </div>
   </div>
 
-  {% set owaspVulns = vulns|filter(v => v.owaspCategory is not null) %}
-  {% if owaspVulns|length > 0 %}
   <div class="owasp-row">
-    {% set owaspGroups = {} %}
-    {% for v in owaspVulns %}
-      {% set cat = v.owaspCategory %}
-      {% set owaspGroups = owaspGroups|merge({ (cat): (owaspGroups[cat] ?? 0) + 1 }) %}
-    {% endfor %}
-    {% for cat, count in owaspGroups|slice(0, 3) %}
     <div class="o-card a05">
-      <div class="o-top"><span class="o-code">{{ cat }}</span><span class="o-count">{{ count }}</span></div>
-      <div class="o-name">{{ cat }}</div>
-      <div class="o-badges"><span class="sev-badge sev-c">{{ count }} occurrence{{ count > 1 ? 's' : '' }}</span></div>
+      <div class="o-top"><span class="o-code">A05:2025</span><span class="o-count">4</span></div>
+      <div class="o-name">Injection</div>
+      <div class="o-badges"><span class="sev-badge sev-c">2 Critical</span><span class="sev-badge sev-h">2 High</span></div>
     </div>
-    {% endfor %}
+    <div class="o-card a07">
+      <div class="o-top"><span class="o-code">A07:2025</span><span class="o-count">3</span></div>
+      <div class="o-name">Authentication Failures</div>
+      <div class="o-badges"><span class="sev-badge sev-h">1 High</span><span class="sev-badge sev-m">2 Medium</span></div>
+    </div>
+    <div class="o-card a01">
+      <div class="o-top"><span class="o-code">A01:2025</span><span class="o-count">7</span></div>
+      <div class="o-name">Broken Access Control</div>
+      <div class="o-badges"><span class="sev-badge sev-h">2 High</span><span class="sev-badge sev-m">1 Medium</span><span class="sev-badge sev-l">4 Low</span></div>
+    </div>
   </div>
-  {% endif %}
 
   <div class="vtable-card">
     <div class="vtable-top">
       <span class="vtable-title">Vulnérabilités détectées</span>
-      <span class="vtable-count">{{ vulns|length }} résultat{{ vulns|length > 1 ? 's' : '' }}</span>
+      <div class="vtable-meta">
+        <div class="filter-tabs">
+          <button class="ftab on">Tous</button>
+          <button class="ftab">A05</button>
+          <button class="ftab">A07</button>
+          <button class="ftab">A01</button>
+        </div>
+        <span class="vtable-count">14 résultats</span>
+      </div>
     </div>
-    {% if vulns|length == 0 %}
-    <div style="text-align:center;padding:60px 20px;color:var(--text3);">
-      <div style="font-size:2rem;margin-bottom:12px;">🎉</div>
-      <div style="font-weight:700;color:var(--text);">Aucune vulnérabilité détectée</div>
-      <div style="font-size:0.82rem;margin-top:6px;">Votre dépôt est propre selon les outils analysés.</div>
-    </div>
-    {% else %}
     <table>
       <thead>
         <tr>
           <th>Outil</th>
-          <th>Fichier / Titre</th>
+          <th>Package / Fichier</th>
+          <th>CVE</th>
           <th>Sévérité</th>
           <th>OWASP</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        {% for vuln in vulns %}
-        <tr onclick="window.location='{{ path('app_vuln_detail', {id: vuln.id}) }}'">
-          <td><span class="td-tool">{{ vuln.tool }}</span></td>
-          <td>
-            <div class="td-pkg">{{ vuln.title|length > 60 ? vuln.title|slice(0,60) ~ '…' : vuln.title }}</div>
-            {% if vuln.filePath %}
-            <div class="td-ver">{{ vuln.filePath }}{% if vuln.lineNumber %} · ligne {{ vuln.lineNumber }}{% endif %}</div>
-            {% endif %}
-          </td>
-          <td>
-            {% if vuln.severity == 'error' %}<span class="sev-badge sev-c">Critique</span>
-            {% elseif vuln.severity == 'warning' %}<span class="sev-badge sev-h">Modéré</span>
-            {% else %}<span class="sev-badge sev-l">Information</span>{% endif %}
-          </td>
-          <td>
-            {% if vuln.owaspCategory %}
-              <span class="owasp-pill op-a05">{{ vuln.owaspCategory }}</span>
-            {% else %}
-              <span style="color:var(--text3)">—</span>
-            {% endif %}
-          </td>
+        <tr onclick="window.location='{{ path('app_vuln_detail', {id: 1}) }}'">
+          <td><span class="td-tool">composer</span></td>
+          <td><div class="td-pkg">symfony/http-kernel</div><div class="td-ver">v5.4.0</div></td>
+          <td><a class="td-cve">CVE-2024-50341</a></td>
+          <td><span class="sev-badge sev-c">Critical</span></td>
+          <td><span class="owasp-pill op-a05">A05 — Injection</span></td>
           <td class="td-arrow">›</td>
         </tr>
-        {% endfor %}
+        <tr onclick="window.location='{{ path('app_vuln_detail', {id: 2}) }}'">
+          <td><span class="td-tool">composer</span></td>
+          <td><div class="td-pkg">doctrine/orm</div><div class="td-ver">v2.14.1</div></td>
+          <td><a class="td-cve">CVE-2024-42352</a></td>
+          <td><span class="sev-badge sev-h">High</span></td>
+          <td><span class="owasp-pill op-a05">A05 — Injection</span></td>
+          <td class="td-arrow">›</td>
+        </tr>
+        <tr onclick="window.location='{{ path('app_vuln_detail', {id: 3}) }}'">
+          <td><span class="td-tool">semgrep</span></td>
+          <td><div class="td-pkg">src/Controller/UserController.php</div><div class="td-ver">ligne 42</div></td>
+          <td><span style="color:var(--text3)">—</span></td>
+          <td><span class="sev-badge sev-h">High</span></td>
+          <td><span class="owasp-pill op-a05">A05 — Injection</span></td>
+          <td class="td-arrow">›</td>
+        </tr>
+        <tr onclick="window.location='{{ path('app_vuln_detail', {id: 4}) }}'">
+          <td><span class="td-tool">npm</span></td>
+          <td><div class="td-pkg">lodash</div><div class="td-ver">&lt;4.17.21</div></td>
+          <td><a class="td-cve">CVE-2021-23337</a></td>
+          <td><span class="sev-badge sev-h">High</span></td>
+          <td><span class="owasp-pill op-a07">A07 — Auth</span></td>
+          <td class="td-arrow">›</td>
+        </tr>
+        <tr onclick="window.location='{{ path('app_vuln_detail', {id: 5}) }}'">
+          <td><span class="td-tool">composer</span></td>
+          <td><div class="td-pkg">twig/twig</div><div class="td-ver">v3.7.1</div></td>
+          <td><a class="td-cve">CVE-2024-51754</a></td>
+          <td><span class="sev-badge sev-m">Medium</span></td>
+          <td><span class="owasp-pill op-a01">A01 — Access</span></td>
+          <td class="td-arrow">›</td>
+        </tr>
       </tbody>
     </table>
-    {% endif %}
   </div>
 
 </div>
