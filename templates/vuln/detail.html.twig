@@ -23,13 +23,36 @@
         <div class="detail-head">
           <div>
             <div class="detail-pkg-name">{{ vuln.rawData.package ?? vuln.filePath }}</div>
-            <div class="detail-ver">Version affectée : {{ vuln.rawData.version ?? 'N/A' }}</div>
+            <div class="detail-ver">
+              Outil : <strong>{{ vuln.tool }}</strong>
+              {% if vuln.rawData.version is defined and vuln.rawData.version %}
+                &nbsp;·&nbsp; Version affectée : {{ vuln.rawData.version }}
+              {% endif %}
+            </div>
           </div>
           {% if vuln.rawData.cve is defined and vuln.rawData.cve %}
             <div class="cve-badge">{{ vuln.rawData.cve }}</div>
           {% endif %}
         </div>
+
         <div class="detail-desc">{{ vuln.title }}</div>
+
+        {% if vuln.description %}
+          <div style="margin-top:18px; font-size:0.85rem; color:var(--text2); line-height:1.7; padding-top:18px; border-top:1px solid var(--border);">
+            <div class="fix-label" style="margin-bottom:8px;">Description</div>
+            {{ vuln.description|vuln_fr(vuln.title) }}
+          </div>
+        {% endif %}
+
+        {% if vuln.filePath %}
+          <div style="margin-top:18px; padding-top:18px; border-top:1px solid var(--border);">
+            <div class="fix-label" style="margin-bottom:6px;">Fichier</div>
+            <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text2); background:var(--surface); padding:8px 12px; border-radius:var(--radius); border:1px solid var(--border);">
+              {{ vuln.filePath }}{% if vuln.lineNumber %} <span style="color:var(--text3);">: ligne {{ vuln.lineNumber }}</span>{% endif %}
+            </div>
+          </div>
+        {% endif %}
+
         {% if vuln.rawData.fix is defined and vuln.rawData.fix %}
           <div style="margin-top:18px;">
             <div class="fix-label">Commande de correction</div>
@@ -43,27 +66,33 @@
     </div>
 
     <div class="detail-right">
+      {% if vuln.owaspCategory %}
       <div class="d-card">
         <div class="d-card-label">Catégorie OWASP</div>
+        {% set owaspParts = vuln.owaspCategory|split(' — ') %}
         <div class="owasp-sidebar-badge">
-          <span class="osb-code">A05:2025</span>
-          <span class="osb-name">Injection</span>
-        </div>
-        <div class="osb-desc">
-          Les failles d'injection surviennent quand des données non fiables
-          sont envoyées à un interpréteur en tant que commande ou requête.
+          <span class="osb-code">{{ owaspParts[0] }}</span>
+          {% if owaspParts|length > 1 %}
+            <span class="osb-name">{{ owaspParts[1] }}</span>
+          {% endif %}
         </div>
       </div>
+      {% endif %}
 
       <div class="d-card">
         <div class="d-card-label">Sévérité</div>
         <div class="sev-row">
-          <div class="sev-row-top">
-            <span class="sev-row-label">CVSS Score</span>
-            <span class="sev-row-score">8.5 / 10</span>
+          <div class="sev-bar">
+            <div class="sev-bar-fill" style="width:{% if vuln.severity == 'error' %}100%{% elseif vuln.severity == 'warning' %}55%{% else %}20%{% endif %}; background:{% if vuln.severity == 'error' %}#FF6B6B{% elseif vuln.severity == 'warning' %}#f59e0b{% else %}#60a5fa{% endif %};"></div>
           </div>
-          <div class="sev-bar"><div class="sev-bar-fill"></div></div>
-          <span class="sev-badge sev-c" style="width:fit-content">{{ vuln.severity|capitalize }}</span>
+          <span style="display:inline-block; padding:4px 14px; border-radius:100px; font-size:0.78rem; font-weight:700; width:fit-content;
+            {% if vuln.severity == 'error' %}background:rgba(255,107,107,0.12); color:#dc2626;
+            {% elseif vuln.severity == 'warning' %}background:rgba(245,158,11,0.12); color:#d97706;
+            {% else %}background:rgba(96,165,250,0.12); color:#2563eb;{% endif %}">
+            {% if vuln.severity == 'error' %}Critique
+            {% elseif vuln.severity == 'warning' %}Modéré
+            {% else %}Information{% endif %}
+          </span>
         </div>
       </div>
 
