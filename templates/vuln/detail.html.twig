@@ -13,7 +13,7 @@
     <span class="bc-sep">›</span>
     <span>{{ vuln.rawData.package ?? vuln.filePath }}</span>
     <span class="bc-sep">›</span>
-    <span style="color:var(--primary)">{{ vuln.rawData.cve ?? vuln.owaspCategory }}</span>
+    <span class="bc-current">{{ vuln.rawData.cve ?? vuln.owaspCategory }}</span>
   </div>
 
   <div class="detail-grid">
@@ -38,23 +38,23 @@
         <div class="detail-desc">{{ vuln.title }}</div>
 
         {% if vuln.description %}
-          <div style="margin-top:18px; font-size:0.85rem; color:var(--text2); line-height:1.7; padding-top:18px; border-top:1px solid var(--border);">
-            <div class="fix-label" style="margin-bottom:8px;">Description</div>
+          <div class="detail-desc-block">
+            <div class="fix-label">Description</div>
             {{ vuln.description|vuln_fr(vuln.title) }}
           </div>
         {% endif %}
 
         {% if vuln.filePath %}
-          <div style="margin-top:18px; padding-top:18px; border-top:1px solid var(--border);">
-            <div class="fix-label" style="margin-bottom:6px;">Fichier</div>
-            <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text2); background:var(--surface); padding:8px 12px; border-radius:var(--radius); border:1px solid var(--border);">
-              {{ vuln.filePath }}{% if vuln.lineNumber %} <span style="color:var(--text3);">: ligne {{ vuln.lineNumber }}</span>{% endif %}
+          <div class="detail-file-block">
+            <div class="fix-label">Fichier</div>
+            <div class="detail-file-path">
+              {{ vuln.filePath }}{% if vuln.lineNumber %} <span class="detail-line-num">: ligne {{ vuln.lineNumber }}</span>{% endif %}
             </div>
           </div>
         {% endif %}
 
         {% if vuln.rawData.fix is defined and vuln.rawData.fix %}
-          <div style="margin-top:18px;">
+          <div class="fix-block-wrap">
             <div class="fix-label">Commande de correction</div>
             <div class="fix-block">
               <code>{{ vuln.rawData.fix }}</code>
@@ -83,12 +83,9 @@
         <div class="d-card-label">Sévérité</div>
         <div class="sev-row">
           <div class="sev-bar">
-            <div class="sev-bar-fill" style="width:{% if vuln.severity == 'error' %}100%{% elseif vuln.severity == 'warning' %}55%{% else %}20%{% endif %}; background:{% if vuln.severity == 'error' %}#FF6B6B{% elseif vuln.severity == 'warning' %}#f59e0b{% else %}#60a5fa{% endif %};"></div>
+            <div class="sev-bar-fill sev-bar-fill--{{ vuln.severity == 'error' ? 'error' : (vuln.severity == 'warning' ? 'warning' : 'info') }}"></div>
           </div>
-          <span style="display:inline-block; padding:4px 14px; border-radius:100px; font-size:0.78rem; font-weight:700; width:fit-content;
-            {% if vuln.severity == 'error' %}background:rgba(255,107,107,0.12); color:#dc2626;
-            {% elseif vuln.severity == 'warning' %}background:rgba(245,158,11,0.12); color:#d97706;
-            {% else %}background:rgba(96,165,250,0.12); color:#2563eb;{% endif %}">
+          <span class="sev-badge-detail sev-badge-detail--{{ vuln.severity == 'error' ? 'error' : (vuln.severity == 'warning' ? 'warning' : 'info') }}">
             {% if vuln.severity == 'error' %}Critique
             {% elseif vuln.severity == 'warning' %}Modéré
             {% else %}Information{% endif %}

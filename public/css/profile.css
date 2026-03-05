@@ -107,6 +107,8 @@
 }
 .modal-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -0.3px; }
 .modal-desc { font-size: 0.84rem; color: var(--text2); margin-bottom: 28px; line-height: 1.6; }
+.modal-desc strong { color: var(--red); }
+.modal-form-inline { margin: 0; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .modal-cancel {
   padding: 9px 18px; border-radius: 100px;

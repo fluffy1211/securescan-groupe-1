@@ -31,6 +31,11 @@
   font-size: 0.78rem; color: var(--text3);
 }
 .scan-badges { display: flex; align-items: center; gap: 5px; }
+.sev-badge--pending {
+  background: rgba(217,119,6,0.1);
+  color: var(--amber);
+  border-color: rgba(217,119,6,0.2);
+}
 
 .scan-right { display: flex; align-items: center; gap: 12px; }
 .scan-score {

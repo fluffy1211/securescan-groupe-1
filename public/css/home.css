@@ -64,6 +64,7 @@
   border-right: 1.5px solid var(--border);
   background: var(--surface); white-space: nowrap; gap: 6px;
 }
+.scan-prefix-accent { color: var(--primary); }
 .scan-input {
   flex: 1; background: transparent; border: none; outline: none;
   font-family: var(--font-mono); font-size: 0.8rem; color: var(--text); padding: 16px 14px;

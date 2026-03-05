@@ -84,14 +84,14 @@
   <div class="modal-box">
     <div class="modal-title">Supprimer le compte ?</div>
     <div class="modal-desc">
-      Cette action est <strong style="color:var(--red)">irréversible</strong>.
+      Cette action est <strong>irréversible</strong>.
       Votre compte et toutes vos données associées seront définitivement supprimés.
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" type="button" onclick="document.getElementById('modal-delete').classList.remove('open')">
         Annuler
       </button>
-      <form method="post" action="{{ path('app_profile_delete') }}" style="margin:0;">
+      <form method="post" action="{{ path('app_profile_delete') }}" class="modal-form-inline">
         <input type="hidden" name="_token" value="{{ csrf_token('delete_account') }}">
         <button class="danger-btn" type="submit">Oui, supprimer</button>
       </form>
